@@ -7,7 +7,7 @@ export const StorageManager = {
     defaults: {
         settings: {
             enabled: true,
-            debugMode: true,
+            debugMode: false,
             usageProfile: 'strict'
         },
         modules: {
