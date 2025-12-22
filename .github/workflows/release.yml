@@ -27,11 +27,20 @@ jobs:
       - name: Build Extension
         run: npm run build
 
-      - name: Zip Build
-        run: cd dist && zip -r ../AIgis-${{ github.ref_name }}.zip .
+      - name: Check Build Output
+        run: ls -R dist
 
-      - name: Generate SHA256 Checksum
+      - name: Create Zip
+        run: |
+          cd dist
+          zip -r ../AIgis-${{ github.ref_name }}.zip .
+          cd ..
+      
+      - name: Generate Checksum
         run: sha256sum AIgis-${{ github.ref_name }}.zip > AIgis-${{ github.ref_name }}.zip.sha256
+
+      - name: List Artifacts
+        run: ls -l AIgis-${{ github.ref_name }}.*
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
