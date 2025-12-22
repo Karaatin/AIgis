@@ -50,3 +50,38 @@ sequenceDiagram
     LLM (Cloud)-->>AIgis (Browser): Returns Answer ("Email for [EMAIL_1]...")
     Note over AIgis (Browser): 5. Reverse PII-Mapping and TOON <br/>Replace [EMAIL_1] / TOON -> foo@bar.com / JSON
     AIgis (Browser)-->>User: Displays Final Answer
+```
+
+---
+
+## Installation
+
+AIgis is currently in **active development** and not yet listed on the Chrome Web Store. You can install it manually in less than a minute:
+
+1.  **Download:** Go to the [Releases Page](../../releases) and download the latest `AIgis-vX.X.X.zip` (found under "Assets").
+2.  **Unzip:** Extract the ZIP file into a folder of your choice.
+3.  **Open Chrome Extensions:** Navigate to `chrome://extensions/` in your browser.
+4.  **Enable Developer Mode:** Toggle the switch **"Developer mode"** in the top-right corner.
+5.  **Load Extension:** Click the **"Load unpacked"** button (top left).
+6.  **Select:** Select the folder you just extracted.
+
+**Ready!** AIgis is now active. We recommend pinning the extension icon to your toolbar for quick access to the toggle switch.
+
+> **Security Note:** Every release includes a `.sha256` checksum file. You can verify the integrity of the downloaded ZIP against this hash to ensure the file hasn't been tampered with.
+
+### For Developers (Build from Source)
+
+If you want to contribute or audit the code:
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/Karaatin/AIgis.git
+
+# 2. Install dependencies
+npm install
+
+# 3. Build the project
+npm run build
+
+# 4. Load the 'dist' folder in Chrome (via "Load unpacked")
+```
