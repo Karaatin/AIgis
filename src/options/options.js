@@ -474,11 +474,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.readAsText(file);
     });
 
-    // Need to implement real logic here
     const updateBtn = document.getElementById('btnUpdateCheck');
+    const updateStatus = document.getElementById('updateStatus');
+    const GITHUB_REPO = "Karaatin/AIgis";
+
+    function isNewerVersion(current, remote) {
+        const cParts = current.split('.').map(Number);
+        const rParts = remote.split('.').map(Number);
+        for (let i = 0; i < Math.max(cParts.length, rParts.length); i++) {
+            const c = cParts[i] || 0;
+            const r = rParts[i] || 0;
+            if (r > c) return true;
+            if (r < c) return false;
+        }
+        return false;
+    }
+
     if (updateBtn) {
-        updateBtn.addEventListener('click', () => {
-            document.getElementById('updateStatus').textContent = "You are on the latest version.";
+        updateBtn.addEventListener('click', async () => {
+            updateStatus.innerHTML = "Checking GitHub...";
+            updateStatus.style.color = "#666";
+
+            try {
+                const currentVer = chrome.runtime.getManifest().version;
+
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) throw new Error("No releases found.");
+                    if (response.status === 403) throw new Error("API rate limit. Try later.");
+                    throw new Error("GitHub API Error");
+                }
+
+                const data = await response.json();
+                
+                const remoteVer = data.tag_name.replace(/^v/, '');
+
+                if (isNewerVersion(currentVer, remoteVer)) {
+                    updateStatus.innerHTML = `
+                        <span style="color: #ea580c; font-weight: bold;">Update available: v${remoteVer}</span><br>
+                        <a href="${data.html_url}" target="_blank" style="color: #0369a1; text-decoration: underline; font-size: 0.9em;">Download from GitHub</a>
+                    `;
+                } else {
+                    updateStatus.innerHTML = `<span style="color: #16a34a; font-weight: bold;">You are up to date (v${currentVer}).</span>`;
+                }
+
+            } catch (error) {
+                console.error(error);
+                updateStatus.textContent = `Error: ${error.message}`;
+                updateStatus.style.color = "#dc2626";
+            }
         });
     }
 });
