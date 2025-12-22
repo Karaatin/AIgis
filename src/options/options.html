@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AIgis Dashboard</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="app-layout">
+        
+        <aside class="sidebar panel">
+            <div class="brand">
+                <img src="../../public/icons/icon128.png" alt="Logo" class="logo">
+                <h2>AIgis</h2>
+                <span class="version-badge">${manifest.version}</span>
+            </div>
+
+            <nav>
+                <button class="nav-item active" data-tab="general">
+                    <span class="icon">⚙️</span> General
+                </button>
+                <button class="nav-item" data-tab="dictionary">
+                    <span class="icon">🛡️</span> Custom Dictionary
+                </button>
+                <button class="nav-item" data-tab="statistics">
+                    <span class="icon">📊</span> Statistics
+                </button>
+                <button class="nav-item" data-tab="data">
+                    <span class="icon">💾</span> Data, Storage & Sync
+                </button>
+                <button class="nav-item" data-tab="about">
+                    <span class="icon">❤️</span> About
+                </button>
+            </nav>
+        </aside>
+
+        <main class="content-area">
+            
+            <section id="general" class="tab-content active">
+                <h1>General Settings</h1>
+                
+                <div class="card panel">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3>Protection Layer</h3>
+                            <p>Master switch for all AIgis features.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="optEnabled">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card panel">
+                    <h3>Active Modules</h3>
+                    <p class="desc">Select which modules should be activated (Masking & Optimization).</p>
+                    <div class="modules-grid mt-lg" id="modulesGrid"></div>
+                </div>
+
+                <div class="card panel">
+                    <h3>Sensitivity Profile</h3>
+                    <p class="desc">Choose how aggressive AIgis should scan for patterns.</p>
+                    
+                    <div class="mode-selector">
+                        <input type="radio" name="mode" id="modeStrict" value="strict">
+                        <label for="modeStrict" class="mode-card">
+                            <span class="icon">🛡️</span>
+                            <div class="text">
+                                <strong>Strict Mode</strong>
+                                <br>
+                                <small>Masks everything that looks like data (e.g. script.py).</small>
+                            </div>
+                        </label>
+
+                        <input type="radio" name="mode" id="modeDev" value="developer">
+                        <label for="modeDev" class="mode-card">
+                            <span class="icon">👨‍💻</span>
+                            <div class="text">
+                                <strong>Developer Mode</strong>
+                                <br>
+                                <small>Ignores dev-files, localhost, and common dev-jargon.</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card panel">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3>Debug Mode</h3>
+                            <p>Show visual highlights (red borders) on detected fields & more.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="optDebug">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section id="dictionary" class="tab-content">
+                <div class="header-row">
+                    <h1>Custom Dictionary</h1>
+                    <div class="actions">
+                        <button id="btnBulkDeleteDict" class="btn danger-sm hidden">Delete Selected (<span id="countDict">0</span>)</button>
+                        <button id="btnDeleteAllDict" class="btn danger-outline">Delete All</button>
+                    </div>
+                </div>
+                <div class="card panel">
+                    <div class="input-group-lg">
+                        <input type="text" id="dictInput" placeholder="Enter word to block (e.g. Project Apollo)...">
+                        <button id="dictAddBtn">Add Entry</button>
+                    </div>
+                    <div class="list-wrapper">
+                        <div class="list-header">
+                            <div class="col-check">
+                                <input type="checkbox" id="checkAllDict">
+                            </div>
+                            <span class="col-1">Word / Phrase</span>
+                            <span class="text-right">Actions</span>
+                        </div>
+                        <div id="wordListContainer" class="list-scroll-area">
+                            <div class="empty-state">No custom words defined yet.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="statistics" class="tab-content">
+                <div class="header-row">
+                    <h1>Statistics</h1>
+                    <button id="btnClearStats" class="btn danger-outline">Reset Statistics</button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card panel">
+                        <span class="stat-icon">🛡️</span>
+                        <h2 id="totalPii">0</h2>
+                        <p>Total PII Masked</p>
+                    </div>
+                    <div class="stat-card panel">
+                        <span class="stat-icon">⚡</span>
+                        <h2 id="totalTokens">0</h2>
+                        <p>Tokens Saved</p>
+                    </div>
+                    <div class="stat-card panel">
+                        <span class="stat-icon">💬</span>
+                        <h2 id="totalPrompts">0</h2>
+                        <p>Prompts Scanned</p>
+                    </div>
+                </div>
+                <h3>Breakdown by Category</h3>
+                <div class="card panel table-wrapper">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 70%">Category</th>
+                                <th style="width: 30%">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statsTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="data" class="tab-content">
+                <h1>Data, Storage & Sync</h1>
+                <div class="card panel">
+                    <div class="header-row" style="margin-bottom: 15px;">
+                        <h3>Active Vault (Restoration Data)</h3>
+                        <button id="btnBulkDeleteVault" class="btn danger-sm hidden">Delete Selected (<span id="countVault">0</span>)</button>
+                    </div>
+                    
+                    <p class="desc">
+                        This table shows the placeholders (and linked original values) currently stored in your local vault for restoration.
+                    </p>
+                    <div class="list-wrapper mt-lg">
+                        <div class="list-header">
+                            <div class="col-check">
+                                <input type="checkbox" id="checkAllVault">
+                            </div>
+                            <span class="col-1">Placeholder</span>
+                            <span class="col-2">Original Value</span>
+                        </div>
+                        <div id="vaultListContainer" class="list-scroll-area">
+                            <div class="empty-state">Loading vault...</div>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button id="btnExportVault" class="btn secondary">Export Vault</button>
+                        <button id="btnImportVault" class="btn secondary">Import Vault</button>
+                        <input type="file" id="fileImportVault" hidden accept=".json">
+                        <button id="btnClearVault" class="btn danger">Clear Vault</button>
+                    </div>
+                </div>
+                <div class="card panel">
+                    <h3>Settings Backup</h3>
+                    <p class="desc">Export your configuration and custom dictionary to a JSON file.</p>
+                    <div class="btn-row">
+                        <button id="btnExportSettings" class="btn primary">Export Settings</button>
+                        <button id="btnImportSettings" class="btn secondary">Import Settings</button>
+                        <input type="file" id="fileImportSettings" hidden accept=".json">
+                    </div>
+                </div>
+            </section>
+
+            <section id="about" class="tab-content">
+                <div class="hero-center">
+                    <img src="../../public/icons/icon128.png" class="hero-logo">
+                    <h1>AIgis</h1>
+                    <p class="subtitle">Secure your AI interactions with local-first privacy.</p>
+                    <span class="build-badge">Version ${manifest.version}</span>
+                </div>
+                <div class="card panel about-links">
+                    <a href="https://github.com/Karaatin/AIgis" target="_blank" class="link-item">
+                        <span class="icon">⭐</span>
+                        <div>
+                            <strong>GitHub Repository</strong>
+                            <br>
+                            <small>Star my repo or report issues.</small>
+                        </div>
+                    </a>
+                    <div class="link-item action" id="btnUpdateCheck">
+                        <span class="icon">🔄</span>
+                        <div>
+                            <strong>Check for Updates</strong>
+                            <br>
+                            <small id="updateStatus">Current version is up to date.</small>
+                        </div>
+                    </div>
+                    <div class="link-item">
+                        <span class="icon">📜</span>
+                        <div>
+                            <strong>License</strong>
+                            <br>
+                            <small>Open Source under GPLv3.</small>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 40px; color: var(--text-muted); font-size: 0.8rem;">
+                    Made with ❤️ for Privacy & AI.
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="appModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="modalTitle" aria-describedby="modalMessage">
+        <div class="modal-content">
+            <h3 id="modalTitle">Confirm Action</h3>
+            <p id="modalMessage">Are you sure?</p>
+            
+            <div id="modalInputContainer" class="hidden">
+                <input type="text" id="modalInput" class="modal-input">
+            </div>
+
+            <div class="modal-actions">
+                <button id="modalCancel" class="btn secondary">Cancel</button>
+                <button id="modalConfirm" class="btn primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="options.js"></script>
+</body>
+</html>

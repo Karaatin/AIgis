@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIgis</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="layout">
+
+    <header class="panel">
+      <div class="brand">
+        <img src="../../public/icons/icon48.png" alt="Logo" class="logo">
+
+        <div class="brand-row">
+          <h1>AIgis</h1>
+          <span id="statusBadge" class="badge">Checking...</span>
+        </div>
+      </div>
+
+      <button id="btnOptions" class="action-btn" title="Open Settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+          </path>
+        </svg>
+      </button>
+    </header>
+
+    <div class="panel main-control">
+      <div class="control-row">
+        <span class="label">Protection Layer</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggleEnabled">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="mode-switch">
+        <input type="radio" name="mode" id="modeStrict" value="strict">
+        <label for="modeStrict" class="mode-opt">
+          <span>🛡️</span> Strict
+        </label>
+
+        <input type="radio" name="mode" id="modeDev" value="developer">
+        <label for="modeDev" class="mode-opt">
+          <span>👨‍💻</span> Dev
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-head">ACTIVE MODULES</div>
+      <div class="grid" id="modulesGrid"></div>
+    </div>
+
+    <div>
+      <div class="section-head">QUICK BLOCK</div>
+      <div class="input-row">
+        <input type="text" id="inputWord" placeholder="Add word or phrase...">
+        <button id="btnAddWord">Add</button>
+      </div>
+      <div id="feedbackMsg" class="feedback"></div>
+    </div>
+
+    <footer class="panel">
+      <div class="stat-box">
+        <span class="val" id="statPii">0</span>
+        <span class="key">PII Masked</span>
+      </div>
+      <div class="stat-box">
+        <span class="val" id="statTokens">0</span>
+        <span class="key">Tokens Saved</span>
+      </div>
+    </footer>
+
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,78 @@
+{
+  "manifest_version": 3,
+  "name": "AIgis - Secure & Optimize AI Interactions",
+  "version": "0.1.0",
+  "description": "Secure & optimize your AI interactions. A browser extension that masks secrets and optimizes tokens in prompts locally before sending them to LLMs.",
+  "author": "Keanu Caspers - github@Karaatin",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://copilot.microsoft.com/*",
+    "https://www.perplexity.ai/*",
+    "https://chat.mistral.ai/chat/*",
+    "https://grok.com/*",
+    "https://www.deepseek.com/*",
+    "https://www.kimi.com/*"
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "AIgis Quick-Dashboard"
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://copilot.microsoft.com/*",
+        "https://www.perplexity.ai/*",
+        "https://chat.mistral.ai/chat/*",
+        "https://grok.com/*",
+        "https://www.deepseek.com/*",
+        "https://www.kimi.com/*"
+      ],
+      "exclude_matches": [
+        "https://claude.ai/login*",
+        "https://accounts.google.com/v3/signin/*",
+        "https://gemini.google.com/signin/*",
+        "https://copilot.microsoft.com/login/*",
+        "https://v2.auth.mistral.ai/login*",
+        "https://accounts.x.ai/sign-in*",
+        "https://chat.deepseek.com/sign_in*",
+        "https://platform.deepseek.com/sign_in*"
+      ],
+      "js": ["content-loader.js"],
+      "css": ["src/styles/badges.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": [
+        "content-loader.js",
+        "src/*",
+        "assets/*"
+      ]
+    }
+  ]
+}

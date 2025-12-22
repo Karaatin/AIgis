@@ -1,0 +1,177 @@
+/* AIgis Secure Badges - UI Styles */
+
+.aigis-badge {
+    display: inline-flex;
+    align-items: center;
+    background-color: #e0f2fe;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+    border-radius: 6px;
+    padding: 2px 6px;
+    margin: 0 2px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+    user-select: text;
+}
+
+@media (prefers-color-scheme: dark) {
+    .aigis-badge {
+        background-color: #0f172a;
+        color: #38bdf8;
+        border-color: #1e293b;
+    }
+}
+
+.aigis-badge:hover {
+    background-color: #bae6fd;
+    border-color: #7dd3fc;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+    .aigis-badge:hover {
+        background-color: #1e293b;
+        border-color: #0284c7;
+    }
+}
+
+.aigis-badge::before {
+    content: "🛡️";
+    margin-right: 4px;
+    font-size: 0.85em;
+    filter: grayscale(0.4);
+    transition: filter 0.2s;
+}
+.aigis-badge:hover::before {
+    filter: grayscale(0);
+}
+
+.aigis-badge.revealed {
+    background-color: #dcfce7;
+    color: #166534;
+    border-color: #86efac;
+}
+.aigis-badge.revealed::before {
+    content: "🔓";
+}
+
+@media (prefers-color-scheme: dark) {
+    .aigis-badge.revealed {
+        background-color: #064e3b;
+        color: #4ade80;
+        border-color: #065f46;
+    }
+}
+
+.aigis-json-block {
+    display: block;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin: 10px 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9em;
+    position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+    .aigis-json-block {
+        background-color: #1e293b;
+        border-color: #334155;
+    }
+}
+
+.aigis-json-header {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    padding: 6px 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+    border-bottom: 1px solid #bae6fd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media (prefers-color-scheme: dark) {
+    .aigis-json-header {
+        background-color: #0f172a;
+        color: #38bdf8;
+        border-color: #334155;
+    }
+}
+
+.aigis-json-content {
+    padding: 12px;
+    white-space: pre-wrap; /* JSON Formatierung behalten */
+    color: #334155;
+    overflow-x: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+    .aigis-json-content {
+        color: #cbd5e1;
+    }
+}
+
+.aigis-copy-btn {
+    background: transparent;
+    border: 1px solid #0369a1;
+    color: #0369a1;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.aigis-copy-btn:hover {
+    background: #0369a1;
+    color: white;
+}
+
+@media (prefers-color-scheme: dark) {
+    .aigis-copy-btn {
+        border-color: #38bdf8;
+        color: #38bdf8;
+    }
+    .aigis-copy-btn:hover {
+        background: #38bdf8;
+        color: #0f172a;
+    }
+}
+
+.aigis-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1f2937;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 2147483647;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.aigis-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
