@@ -1,0 +1,43 @@
+name: Release Chrome Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Extension
+        run: npm run build
+
+      - name: Zip Build
+        run: cd dist && zip -r ../AIgis-${{ github.ref_name }}.zip .
+
+      - name: Generate SHA256 Checksum
+        run: sha256sum AIgis-${{ github.ref_name }}.zip > AIgis-${{ github.ref_name }}.zip.sha256
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            AIgis-${{ github.ref_name }}.zip
+            AIgis-${{ github.ref_name }}.zip.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
