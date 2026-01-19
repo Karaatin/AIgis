@@ -31,9 +31,6 @@ export class PiiDetector {
     initMasks() {
         this.masks = [];
 
-        if (this.modules.custom && this.customWords.length > 0) {
-            this.masks.push(new Masks.CustomMask(this.customWords));
-        }
         if (this.modules.email) this.masks.push(new Masks.EmailMask());
         if (this.modules.iban) this.masks.push(new Masks.IBANMask());
         if (this.modules.phone) this.masks.push(new Masks.PhoneMask());
@@ -41,6 +38,9 @@ export class PiiDetector {
         if (this.modules.ip) this.masks.push(new Masks.IPMask());
         if (this.modules.url) this.masks.push(new Masks.URLMask());
         if (this.modules.path) this.masks.push(new Masks.PathMask());
+        if (this.modules.custom && this.customWords.length > 0) {
+            this.masks.push(new Masks.CustomMask(this.customWords));
+        }
     }
 
     /**
