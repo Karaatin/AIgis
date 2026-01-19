@@ -56,26 +56,30 @@ sequenceDiagram
 
 ## Installation
 
-AIgis is currently in **active development** and not yet listed on the Chrome Web Store. You can install it manually in less than a minute:
+AIgis works on **all Chromium-based browsers** (Google Chrome, Microsoft Edge, Brave, Opera, Vivaldi, Arc, etc.).
+
+Since it is currently in **active development** and not yet listed on the Web Stores, you can install it manually in less than a minute:
 
 1.  **Download:** Go to the [Releases Page](../../releases) and download the latest `AIgis-vX.X.X.zip` (found under "Assets").
 2.  **Unzip:** Extract the ZIP file into a folder of your choice.
-3.  **Open Chrome Extensions:** Navigate to `chrome://extensions/` in your browser.
-4.  **Enable Developer Mode:** Toggle the switch **"Developer mode"** in the top-right corner.
-5.  **Load Extension:** Click the **"Load unpacked"** button (top left).
+3.  **Open Extensions Page:**
+    * **Chrome / Brave / Opera:** Navigate to `chrome://extensions/`
+    * **Microsoft Edge:** Navigate to `edge://extensions/`
+4.  **Enable Developer Mode:** Toggle the switch **"Developer mode"** (usually in the top-right corner or left sidebar).
+5.  **Load Extension:** Click the **"Load unpacked"** button.
 6.  **Select:** Select the folder you just extracted.
 
 **Ready!** AIgis is now active. We recommend pinning the extension icon to your toolbar for quick access to the toggle switch.
 
 > **Security Note:** Every release includes a `.sha256` checksum file. You can verify the integrity of the downloaded ZIP against this hash to ensure the file hasn't been tampered with.
 
-### For Developers (Build from Source)
+### 💻 For Developers (Build from Source)
 
 If you want to contribute or audit the code:
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/Karaatin/AIgis.git
+git clone [https://github.com/Karaatin/AIgis.git](https://github.com/Karaatin/AIgis.git)
 
 # 2. Install dependencies
 npm install
@@ -83,5 +87,5 @@ npm install
 # 3. Build the project
 npm run build
 
-# 4. Load the 'dist' folder in Chrome (via "Load unpacked")
+# 4. Load the 'dist' folder in Chrome/Edge (via "Load unpacked")
 ```

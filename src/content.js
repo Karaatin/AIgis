@@ -13,7 +13,7 @@ const detector = new PiiDetector();
 let isProcessing = false;
 let settings = null;
 
-(async () => {
+async function initAIgis() {
     try {
         settings = await StorageManager.getSettings();
         Logger.init(settings);
@@ -23,15 +23,32 @@ let settings = null;
         ResponseHandler.updateVault(vault);
 
         if (settings.settings.enabled) {
-            ResponseHandler.init();
-            Logger.info("🛡️ [AIgis] Response Observer active.");
+            if (document.body) {
+                ResponseHandler.init();
+                Logger.info("🛡️ [AIgis] Response Observer active.");
+            } else {
+                const observer = new MutationObserver(() => {
+                    if (document.body) {
+                        observer.disconnect();
+                        ResponseHandler.init();
+                        Logger.info("🛡️ [AIgis] Response Observer active (delayed).");
+                    }
+                });
+                observer.observe(document.documentElement, { childList: true });
+            }
         }
         
         Logger.info("AIgis Content Script loaded & ready.");
     } catch (e) {
         console.error("AIgis Init Error:", e);
     }
-})();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAIgis);
+} else {
+    initAIgis();
+}
 
 chrome.storage.onChanged.addListener(async (changes, namespace) => {
     if (namespace === 'sync') {
