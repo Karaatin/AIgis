@@ -20,7 +20,7 @@
     "https://gemini.google.com/*",
     "https://copilot.microsoft.com/*",
     "https://www.perplexity.ai/*",
-    "https://chat.mistral.ai/chat/*",
+    "https://chat.mistral.ai/*",
     "https://grok.com/*",
     "https://www.deepseek.com/*",
     "https://www.kimi.com/*"
@@ -45,7 +45,7 @@
         "https://gemini.google.com/*",
         "https://copilot.microsoft.com/*",
         "https://www.perplexity.ai/*",
-        "https://chat.mistral.ai/chat/*",
+        "https://chat.mistral.ai/*",
         "https://grok.com/*",
         "https://www.deepseek.com/*",
         "https://www.kimi.com/*"
