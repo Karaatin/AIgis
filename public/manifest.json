@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AIgis - Secure & Optimize AI Interactions",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Secure & optimize your AI interactions. A browser extension that masks secrets and optimizes tokens in prompts locally before sending them to LLMs.",
   "author": "Keanu Caspers - github@Karaatin",
   "icons": {
@@ -23,7 +23,8 @@
     "https://chat.mistral.ai/*",
     "https://grok.com/*",
     "https://www.deepseek.com/*",
-    "https://www.kimi.com/*"
+    "https://www.kimi.com/*",
+    "https://www.xprivo.com/*"
   ],
   "action": {
     "default_popup": "src/popup/popup.html",
@@ -48,7 +49,8 @@
         "https://chat.mistral.ai/*",
         "https://grok.com/*",
         "https://www.deepseek.com/*",
-        "https://www.kimi.com/*"
+        "https://www.kimi.com/*",
+        "https://www.xprivo.com/*"
       ],
       "exclude_matches": [
         "https://claude.ai/login*",
