@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>AIgis Dashboard</title>
     <link rel="stylesheet" href="options.css">
 </head>
+
 <body>
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
 
     <div class="app-layout">
-        
+
         <aside class="sidebar panel">
             <div class="brand">
                 <img src="../../public/icons/icon128.png" alt="Logo" class="logo">
@@ -39,10 +41,10 @@
         </aside>
 
         <main class="content-area">
-            
+
             <section id="general" class="tab-content active">
                 <h1>General Settings</h1>
-                
+
                 <div class="card panel">
                     <div class="setting-row">
                         <div class="setting-info">
@@ -65,7 +67,7 @@
                 <div class="card panel">
                     <h3>Sensitivity Profile</h3>
                     <p class="desc">Choose how aggressive AIgis should scan for patterns.</p>
-                    
+
                     <div class="mode-selector">
                         <input type="radio" name="mode" id="modeStrict" value="strict">
                         <label for="modeStrict" class="mode-card">
@@ -93,7 +95,7 @@
                     <div class="setting-row">
                         <div class="setting-info">
                             <h3>Debug Mode</h3>
-                            <p>Show visual highlights (red borders) on detected fields & more.</p>
+                            <p>Show visual highlights on detected fields, use developer-console & more.</p>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="optDebug">
@@ -107,7 +109,8 @@
                 <div class="header-row">
                     <h1>Custom Dictionary</h1>
                     <div class="actions">
-                        <button id="btnBulkDeleteDict" class="btn danger-sm hidden">Delete Selected (<span id="countDict">0</span>)</button>
+                        <button id="btnBulkDeleteDict" class="btn danger-sm hidden">Delete Selected (<span
+                                id="countDict">0</span>)</button>
                         <button id="btnDeleteAllDict" class="btn danger-outline">Delete All</button>
                     </div>
                 </div>
@@ -116,13 +119,18 @@
                         <input type="text" id="dictInput" placeholder="Enter word to block (e.g. Project Apollo)...">
                         <button id="dictAddBtn">Add Entry</button>
                     </div>
+                    <div class="search-bar-sm">
+                        <span class="icon">🔍</span>
+                        <input type="search" id="dictSearch" placeholder="Search dictionary...">
+                    </div>
                     <div class="list-wrapper">
                         <div class="list-header">
                             <div class="col-check">
                                 <input type="checkbox" id="checkAllDict">
                             </div>
-                            <span class="col-1">Word / Phrase</span>
-                            <span class="text-right">Actions</span>
+                            <span class="col-1 col-sortable" id="sortDictWord" data-dir="desc">Word / Phrase <span
+                                    class="sort-icon">↕</span></span>
+                            <span class="text-right" style="width: 80px; text-align: right;">Actions</span>
                         </div>
                         <div id="wordListContainer" class="list-scroll-area">
                             <div class="empty-state">No custom words defined yet.</div>
@@ -145,7 +153,7 @@
                     <div class="stat-card panel">
                         <span class="stat-icon">⚡</span>
                         <h2 id="totalTokens">0</h2>
-                        <p>Tokens Saved</p>
+                        <p>Est. Tokens Saved</p>
                     </div>
                     <div class="stat-card panel">
                         <span class="stat-icon">💬</span>
@@ -172,19 +180,28 @@
                 <div class="card panel">
                     <div class="header-row" style="margin-bottom: 15px;">
                         <h3>Active Vault (Restoration Data)</h3>
-                        <button id="btnBulkDeleteVault" class="btn danger-sm hidden">Delete Selected (<span id="countVault">0</span>)</button>
+                        <button id="btnBulkDeleteVault" class="btn danger-sm hidden">Delete Selected (<span
+                                id="countVault">0</span>)</button>
                     </div>
-                    
+
                     <p class="desc">
-                        This table shows the placeholders (and linked original values) currently stored in your local vault for restoration.
+                        This table shows the placeholders (and linked original values) currently stored in your local
+                        vault for restoration.
                     </p>
-                    <div class="list-wrapper mt-lg">
+                    <div class="search-bar-sm mt-lg">
+                        <span class="icon">🔍</span>
+                        <input type="search" id="vaultSearch"
+                            placeholder="Search items by placeholder or original value...">
+                    </div>
+                    <div class="list-wrapper" style="margin-top: 10px;">
                         <div class="list-header">
                             <div class="col-check">
                                 <input type="checkbox" id="checkAllVault">
                             </div>
-                            <span class="col-1">Placeholder</span>
-                            <span class="col-2">Original Value</span>
+                            <span class="col-1 col-sortable active-sort" id="sortVaultPlaceholder"
+                                data-dir="desc">Placeholder <span class="sort-icon">↓</span></span>
+                            <span class="col-2 col-sortable" id="sortVaultOriginal" data-dir="asc">Original Value <span
+                                    class="sort-icon">↕</span></span>
                         </div>
                         <div id="vaultListContainer" class="list-scroll-area">
                             <div class="empty-state">Loading vault...</div>
@@ -248,11 +265,12 @@
         </main>
     </div>
 
-    <div id="appModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="modalTitle" aria-describedby="modalMessage">
+    <div id="appModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="modalTitle"
+        aria-describedby="modalMessage">
         <div class="modal-content">
             <h3 id="modalTitle">Confirm Action</h3>
             <p id="modalMessage">Are you sure?</p>
-            
+
             <div id="modalInputContainer" class="hidden">
                 <input type="text" id="modalInput" class="modal-input">
             </div>
@@ -266,4 +284,5 @@
 
     <script type="module" src="options.js"></script>
 </body>
+
 </html>

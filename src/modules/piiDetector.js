@@ -22,7 +22,7 @@ export class PiiDetector {
         this.modules = data.modules;
         this.customWords = data.customWords || [];
         this.mode = this.settings.usageProfile || 'strict';
-        
+
         this.initMasks();
         this.initialized = true;
     }
@@ -50,7 +50,7 @@ export class PiiDetector {
      */
     async sanitize(text) {
         if (!text) return { sanitizedText: "", piiMap: {}, piiCounts: {} };
-        
+
         if (!this.initialized) await this.init();
 
         if (!this.settings.enabled) {
@@ -58,20 +58,22 @@ export class PiiDetector {
         }
 
         let currentText = text;
-        const sessionMap = {}; 
+        const sessionMap = {};
         const piiCounts = {};
+        const uuidMap = {};
+        const generateUUID = () => crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Math.random().toString(36).substring(2, 15);
 
         // pipe: text is sanitized by all active masks
         for (const mask of this.masks) {
-            
+
             // find matches
             const matches = Array.from(mask.find(currentText, this.mode));
-            
+
             // Unique Set for database operations
             const uniqueMatches = [...new Set(matches.map(m => m[0]))];
 
             for (const original of uniqueMatches) {
-                
+
                 if (mask.validate && !mask.validate(original, this.mode)) {
                     continue;
                 }
@@ -81,7 +83,7 @@ export class PiiDetector {
 
                 // count for statistics
                 const occurrenceCount = (currentText.match(regex) || []).length;
-                
+
                 if (occurrenceCount === 0) continue;
 
                 // check vault and get or create placeholder
@@ -93,16 +95,25 @@ export class PiiDetector {
                     await StorageManager.addMapping(placeholder, original, mask.prefix);
                 }
 
+                // temporary UUID to prevent later regex passes from corrupting the placeholder
+                const tempUUID = `%%${generateUUID()}%%`;
+                uuidMap[tempUUID] = placeholder;
+
                 // update session map
                 sessionMap[placeholder] = original;
-                
+
                 // count up per category for statistics
                 if (!piiCounts[mask.type]) piiCounts[mask.type] = 0;
                 piiCounts[mask.type] += occurrenceCount;
 
-                // replace
-                currentText = currentText.replace(regex, placeholder);
+                // replace with UUID
+                currentText = currentText.replace(regex, tempUUID);
             }
+        }
+
+        // final pass: UUIDs -> real placeholders
+        for (const [uuid, placeholder] of Object.entries(uuidMap)) {
+            currentText = currentText.replace(new RegExp(uuid, 'g'), placeholder);
         }
 
         return {

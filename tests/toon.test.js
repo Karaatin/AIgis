@@ -8,7 +8,7 @@ describe('ToonConverter (Official Repo)', () => {
         const input = 'Data: {"user": "Alice", "role": "Admin"}';
         const output = ToonConverter.convert(input);
 
-        expect(output).toContain('```toon');
+        expect(output).toContain('AIgis:TOON');
         expect(output).toContain('user: Alice'); 
         expect(output).not.toContain('{"user":');
 
@@ -23,13 +23,32 @@ describe('ToonConverter (Official Repo)', () => {
         const input = `Config: ${JSON.stringify(originalJson)}`;
         
         const converted = ToonConverter.convert(input);
-        expect(converted).toContain('```toon');
+        expect(converted).toContain('AIgis:TOON');
         
         const restored = ToonConverter.restore(converted);
 
         expect(restored).toContain('"id": 123');
         expect(restored).toContain('"dev"');
-        expect(restored).not.toContain('```toon');
+        expect(restored).not.toContain('AIgis:TOON');
+
+    });
+
+    it('should parse deeply nested JSON objects and arrays via depth-parser', () => {
+
+        const deepJson = {
+            level1: {
+                level2: [
+                    { level3: "deep" }
+                ],
+                other: { val: 42 }
+            }
+        };
+        const input = `Here is nested JSON: ${JSON.stringify(deepJson)} !!`;
+        
+        const converted = ToonConverter.convert(input);
+        expect(converted).toContain('AIgis:TOON');
+        expect(converted).toContain('deep');
+        expect(converted).not.toContain('{"level1"');
 
     });
 

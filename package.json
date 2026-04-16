@@ -1,7 +1,7 @@
 {
   "name": "aigis-extension",
   "private": true,
-  "version": "0.1.5",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
@@ -9,9 +9,9 @@
     "test": "vitest"
   },
   "devDependencies": {
-    "vite": "^7.2.6",
-    "vite-plugin-static-copy": "^3.1.4",
-    "vitest": "^4.0.15"
+    "vite": "^8.0.8",
+    "vite-plugin-static-copy": "^4.0.1",
+    "vitest": "^4.1.4"
   },
   "dependencies": {
     "@toon-format/monorepo": "github:toon-format/toon"

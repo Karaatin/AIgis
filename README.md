@@ -1,11 +1,24 @@
-# <img src="public/icons/icon128.png" alt="AIgis Icon" width="25" /> AIgis
+<div align="center">
+  <a href="https://github.com/Karaatin/AIgis">
+    <img src="public/icons/icon.svg" alt="AIgis Icon" width="140" />
+  </a>
+  
+  <h1><strong>AI</strong>gis</h1>
 
-> **Secure your AI interactions.**
-> A browser extension that masks secrets and optimizes tokens in prompts locally before sending them to LLMs.
+  <p>
+    <strong>Secure your AI interactions.</strong><br>
+    A browser extension that masks secrets and optimizes tokens in prompts locally before sending them to LLMs.
+  </p>
 
-![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![Status](https://img.shields.io/badge/Status-In%20Development-orange)
-![Platform](https://img.shields.io/badge/Platform-Based_on_Chromium-lightgrey)
+  <p>
+    <a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE">
+      <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3">
+    </a>
+    <img src="https://img.shields.io/badge/Status-Active_Development-orange.svg" alt="Status">
+    <img src="https://img.shields.io/badge/Platform-Chromium-lightgrey.svg" alt="Platform">
+    <img src="https://img.shields.io/badge/Version-v0.2.0-brightgreen.svg" alt="Version">
+  </p>
+</div>
 
 ---
 
@@ -13,24 +26,42 @@
 
 **AIgis** (pronounced like *Aegis*, the mythological shield) is a "Client-Side Privacy Firewall" for Large Language Models.
 
-Many companies and individuals hesitate to use tools like ChatGPT, Claude, or Gemini due to data privacy concerns ("Shadow AI"). **AIgis solves this by intercepting your prompt directly in the browser.** It sanitizes sensitive data (PII) and optimizes data structures to save tokens *before* the request ever leaves your device.
+Many companies and individuals hesitate to use tools like ChatGPT, Claude, Gemini, DeepSeek, or Grok due to data privacy concerns ("Shadow AI"). **AIgis solves this by intercepting your prompt directly in the browser.** It sanitizes sensitive data (PII) and optimizes data structures to save tokens *before* the request ever leaves your device.
 
 **Your data stays yours. The LLM provider only sees what you want them to see.**
 
 ## Features
 
 ### 🔒 1. Privacy & Sanitization
-* **PII Detection:** Automatically detects and masks emails, IBANs, paths, IP addresses and more.
-* **Custom Dictionaries:** Define your own "forbidden words" (e.g., internal project names like `Project Apollo`) that get replaced with  placeholders (`CUSTOM_X`).
-* **Local Processing:** All logic runs in your browser. No data is sent to any 3rd party server for verification.
+* **PII Detection:** Automatically detects and masks emails, phone numbers, IBANs, file paths, URLs, IP addresses and more.
+* **Smart Developer Mode:** Switch between 'Strict' mode (masks everything) and 'Developer' mode (smartly ignores safe programming variables like `localhost`, `10.x.x.x` private network ranges, or standard paths like `./node_modules/` to avoid breaking system code inputs).
+* **Custom Dictionaries:** Define your own "forbidden words" (e.g., internal project names like `Project Apollo`) that get replaced with placeholders (`[CUSTOM_1]`).
+* **Local Processing:** All logic runs completely native within your browser. No data is sent to any 3rd party server for verification.
 
 ### ⚡ 2. Token Optimization (TOON)
 * **JSON to TOON:** AIgis automatically detects bulky JSON inputs and converts them into TOON (Token-Oriented Object Notation) before sending.
 * **30-60% Savings:** TOON strips away redundant syntax (brackets, quotes) to drastically reduce token usage and API costs without losing structural integrity.
 * **Lossless & Reversible:** Fully round-trip capable. Data converted to TOON is semantically identical to the original JSON, ensuring the LLM understands it perfectly.
 
-### 🔄 3. Restoration
-* **Context Restoration:** AIgis re-injects the original data into the LLM's response, so you see the real data while the LLM only saw the placeholders.
+### 🔄 3. Restoration & Utilities
+* **Context Restoration:** AIgis seamlessly re-injects your original string data directly into the LLM's response block in real-time, meaning you read the real data while the LLM only ever saw the generic placeholders.
+* **Smart Copy:** Don't worry about trying to extract information! Just highlight the LLM's text and copy it normally (`Ctrl+C` or `Cmd+C`). AIgis seamlessly intercepts the system's copy pipeline, unmasks the placeholders, natively decodes any TOON blocks to JSON, and injects the raw, safe data straight to your clipboard!
+* **Context Menus:** Features a built-in *Right-Click -> Decode TOON to Clipboard* tool! If the LLM generates raw TOON syntax and misses the auto-decoder, simply highlight the block and right-click to natively restore the JSON to your clipboard!
+ 
+---
+
+## 🌐 Supported Platforms
+AIgis intelligently observes and injects its UI specifically onto the following LLM interfaces out-of-the-box:
+* **ChatGPT** (`chatgpt.com`)
+* **Claude** (`claude.ai`)
+* **Gemini** (`gemini.google.com`)
+* **DeepSeek** (`deepseek.com`)
+* **Microsoft Copilot** (`copilot.microsoft.com`)
+* **Perplexity** (`perplexity.ai`)
+* **Mistral** (`chat.mistral.ai`)
+* **Grok** (`grok.com`)
+* **Kimi** (`kimi.com`)
+* **Xprivo** (`xprivo.com`)
 
 ---
 

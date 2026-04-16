@@ -1,17 +1,17 @@
 /*
  * AIgis - Response Handler
  * Manages secure badges, smart copy interception, and global peek features.
- */
-/* src/modules/responseHandler.js */
+*/
 
 import { ToonConverter } from './toonConverter.js';
 
 export const ResponseHandler = {
-    
-    vaultCache: {}, 
+
+    vaultCache: {},
     observer: null,
     isPeekActive: false,
     debounceTimer: null,
+    pendingNodes: new Set(),
 
     init() {
         document.addEventListener('copy', (e) => this.handleSmartCopy(e));
@@ -26,16 +26,28 @@ export const ResponseHandler = {
         if (this.observer) return;
 
         this.observer = new MutationObserver((mutations) => {
-            const shouldScan = mutations.some(m => 
-                m.type === 'childList' && m.addedNodes.length > 0 || 
-                m.type === 'characterData'
-            );
+            let shouldScan = false;
+
+            mutations.forEach(m => {
+                if (m.type === 'childList') {
+                    m.addedNodes.forEach(node => {
+                        this.pendingNodes.add(node);
+                        shouldScan = true;
+                    });
+                } else if (m.type === 'characterData') {
+                    this.pendingNodes.add(m.target);
+                    shouldScan = true;
+                }
+            });
 
             if (shouldScan) {
                 clearTimeout(this.debounceTimer);
                 this.debounceTimer = setTimeout(() => {
-                    this.scanDOM();   // Scan PII
-                    this.scanToon();  // Scan TOON
+                    const nodesToProcess = Array.from(this.pendingNodes);
+                    this.pendingNodes.clear();
+
+                    this.scanDOM(nodesToProcess);   // Scan PII
+                    this.scanToon(nodesToProcess);  // Scan TOON
                 }, 300);
             }
         });
@@ -54,25 +66,51 @@ export const ResponseHandler = {
         }
     },
 
-    // --- PII Scan ---
-    scanDOM() {
-        const placeholderRegex = /\[[A-Z]+_\d+\]/g;
-        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    // PII Scan
+    scanDOM(nodes = null) {
+        if (!nodes) nodes = [document.body];
+
+        const placeholderRegex = /\[[A-Z_]+_\d+\]/g;
         const nodesToReplace = [];
-        let node;
 
-        while (node = walker.nextNode()) {
-            if (node.parentElement && 
-               (node.parentElement.classList.contains('aigis-badge') || 
-                node.parentElement.classList.contains('aigis-json-content') ||
-                ['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT', 'CODE'].includes(node.parentElement.tagName))) {
-                continue;
+        nodes.forEach(rootNode => {
+            // check if detached
+            if (!rootNode.isConnected) return;
+
+            if (rootNode.nodeType === Node.TEXT_NODE) {
+                if (rootNode.parentElement &&
+                    (rootNode.parentElement.classList.contains('aigis-badge') ||
+                        rootNode.parentElement.classList.contains('aigis-json-content') ||
+                        ['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(rootNode.parentElement.tagName))) {
+                    return;
+                }
+                placeholderRegex.lastIndex = 0;
+                if (placeholderRegex.test(rootNode.nodeValue)) {
+                    nodesToReplace.push(rootNode);
+                }
+                return;
             }
 
-            if (placeholderRegex.test(node.nodeValue)) {
-                nodesToReplace.push(node);
+            if (rootNode.nodeType === Node.ELEMENT_NODE) {
+                try {
+                    const walker = document.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT, null, false);
+                    let node;
+                    while (node = walker.nextNode()) {
+                        if (node.parentElement &&
+                            (node.parentElement.classList.contains('aigis-badge') ||
+                                node.parentElement.classList.contains('aigis-json-content') ||
+                                ['SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT'].includes(node.parentElement.tagName))) {
+                            continue;
+                        }
+
+                        placeholderRegex.lastIndex = 0;
+                        if (placeholderRegex.test(node.nodeValue)) {
+                            nodesToReplace.push(node);
+                        }
+                    }
+                } catch (e) { }
             }
-        }
+        });
 
         nodesToReplace.forEach(textNode => {
             const fragment = document.createDocumentFragment();
@@ -88,28 +126,42 @@ export const ResponseHandler = {
             }
             const after = textNode.nodeValue.substring(lastIndex);
             if (after) fragment.appendChild(document.createTextNode(after));
-            
-            textNode.parentNode.replaceChild(fragment, textNode);
+
+            if (textNode.parentNode) {
+                textNode.parentNode.replaceChild(fragment, textNode);
+            }
         });
     },
 
-    scanToon() {
-        const codeBlocks = document.querySelectorAll('code, pre');
+    scanToon(nodes = null) {
+        if (!nodes) nodes = [document.body];
+
+        const codeBlocks = new Set();
+
+        nodes.forEach(rootNode => {
+            if (rootNode.nodeType === Node.ELEMENT_NODE) {
+                if (rootNode.tagName === 'CODE' || rootNode.tagName === 'PRE') {
+                    codeBlocks.add(rootNode);
+                }
+                const blocks = rootNode.querySelectorAll('code, pre');
+                blocks.forEach(b => codeBlocks.add(b));
+            }
+        });
 
         codeBlocks.forEach(block => {
             if (block.closest('.aigis-json-block')) return;
 
             const text = block.innerText || "";
-            
+
             if (text.includes('AIgis:TOON')) {
-                
+
                 const parts = text.split('AIgis:TOON');
                 if (parts.length < 2) return;
 
                 const rawContent = parts[1].trim();
-                
+
                 const jsonString = ToonConverter.decodeRaw(rawContent);
-                
+
                 if (jsonString) {
                     this.replaceWithJsonBlock(block, jsonString);
                 }
@@ -120,14 +172,14 @@ export const ResponseHandler = {
     replaceWithJsonBlock(originalNode, jsonString) {
         const container = document.createElement('div');
         container.className = 'aigis-json-block';
-        
+
         const header = document.createElement('div');
         header.className = 'aigis-json-header';
         header.innerHTML = `
             <span>⚡ TOON Decoded</span>
             <button class=\"aigis-copy-btn\">Copy JSON</button>
         `;
-        
+
         const content = document.createElement('div');
         content.className = 'aigis-json-content';
         content.textContent = jsonString;
@@ -143,10 +195,10 @@ export const ResponseHandler = {
         container.appendChild(header);
         container.appendChild(content);
 
-        const target = (originalNode.tagName === 'CODE' && originalNode.parentElement.tagName === 'PRE') 
-            ? originalNode.parentElement 
+        const target = (originalNode.tagName === 'CODE' && originalNode.parentElement.tagName === 'PRE')
+            ? originalNode.parentElement
             : originalNode;
-        
+
         if (target && target.parentNode) {
             target.parentNode.replaceChild(container, target);
         }
@@ -161,7 +213,7 @@ export const ResponseHandler = {
 
         const original = this.vaultCache[placeholder];
         if (original) {
-            const preview = original.length > 8 
+            const preview = original.length > 8
                 ? `${original.substring(0, 4)}...${original.substring(original.length - 4)}`
                 : '***';
             span.title = `Original: ${preview}\n• Click to copy\n• Double-Click to reveal all`;

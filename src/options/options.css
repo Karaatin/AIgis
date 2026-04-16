@@ -29,9 +29,7 @@ body {
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(100px);
   z-index: -1;
-  opacity: 0.4;
 }
 
 .blob-1 {
@@ -39,7 +37,7 @@ body {
   left: -10%;
   width: 50vw;
   height: 50vw;
-  background: var(--accent);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 65%);
 }
 
 .blob-2 {
@@ -47,8 +45,7 @@ body {
   right: -10%;
   width: 40vw;
   height: 40vw;
-  background: var(--success);
-  opacity: 0.2;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 65%);
 }
 
 .blob-3 {
@@ -56,8 +53,7 @@ body {
   left: 40%;
   width: 20vw;
   height: 20vw;
-  background: #6366f1;
-  opacity: 0.3;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 65%);
 }
 
 .app-layout {
@@ -470,8 +466,8 @@ input:checked + .mode-card {
     animation: fadeIn 0.2s;
 }
 
-.col-1 { flex: 1; }
-.col-2 { flex: 2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-1 { flex: 1; font-size: 1.05rem; }
+.col-2 { flex: 2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1.05rem; }
 .col-check {
     width: 40px;
     display: flex;
@@ -808,4 +804,56 @@ input[type="checkbox"] {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+.search-bar-sm {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-bar-sm .icon {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.search-bar-sm input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: white;
+  outline: none;
+  font-size: 0.95rem;
+}
+
+.col-sortable {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.col-sortable:hover {
+  color: var(--text);
+}
+
+.col-sortable .sort-icon {
+  font-size: 0.8em;
+  opacity: 0.5;
+  transition: 0.2s;
+}
+
+.col-sortable.active-sort {
+  color: var(--accent);
+}
+
+.col-sortable.active-sort .sort-icon {
+  opacity: 1;
 }

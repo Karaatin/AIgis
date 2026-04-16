@@ -2,23 +2,58 @@
  * AIgis - ToonConverter
  * Uses the official 'toon-format' library.
  */
-import { encode, decode } from '@toon-format/monorepo/packages/toon/src/index.ts'; 
+import { encode, decode } from '@toon-format/monorepo/packages/toon/src/index.ts';
 
 export const ToonConverter = {
 
     convert(text) {
-        const jsonBlockRegex = /(\{(?:[^{}]|(?:\{[^{}]*\}))*\})|(\[(?:[^\[\]]|(?:\[[^\[\]]*\]))*\])/g;
+        if (!text) return text;
 
-        return text.replace(jsonBlockRegex, (match) => {
-            try {
-                const jsonObj = JSON.parse(match);
-                const toonOutput = encode(jsonObj); 
+        let result = "";
+        let lastEndIndex = 0;
 
-                return `\n\`\`\`text\nAIgis:TOON\n${toonOutput.trim()}\n\`\`\`\n`;
-            } catch (e) {
-                return match;
+        for (let i = 0; i < text.length; i++) {
+            if (text[i] === '{' || text[i] === '[') {
+                let depth = 0;
+                let inString = false;
+                let escapeNext = false;
+
+                for (let j = i; j < text.length; j++) {
+                    const char = text[j];
+                    if (escapeNext) { escapeNext = false; continue; }
+                    if (char === '\\') { escapeNext = true; continue; }
+                    if (char === '"') { inString = !inString; continue; }
+
+                    if (!inString) {
+                        if (char === '{' || char === '[') depth++;
+                        else if (char === '}' || char === ']') depth--;
+
+                        if (depth === 0) {
+                            const block = text.substring(i, j + 1);
+                            try {
+                                const cleanBlock = block.replace(/\u00A0/g, ' '); // strip non-breaking spaces
+                                const jsonObj = JSON.parse(cleanBlock);
+                                const toonOutput = encode(jsonObj);
+                                const toReplace = `\n\`\`\`text\nAIgis:TOON\n${toonOutput.trim()}\n\`\`\`\n`;
+
+                                result += text.substring(lastEndIndex, i);
+                                result += toReplace;
+                                lastEndIndex = j + 1;
+                                i = j; // skip over parsed block
+                            } catch (e) {
+                                // not valid JSON, continue outer loop
+                            }
+                            break;
+                        } else if (depth < 0) {
+                            break; // mismatched brackets
+                        }
+                    }
+                }
             }
-        });
+        }
+
+        result += text.substring(lastEndIndex);
+        return result;
     },
 
     decodeRaw(rawString) {

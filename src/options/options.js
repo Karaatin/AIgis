@@ -190,18 +190,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     const checkAllDict = document.getElementById('checkAllDict');
     let selectedDictWords = new Set();
 
+    let dictSearchQuery = '';
+    let dictSortDir = 'asc';
+    let dictSearchTimeout;
+
+    const dictSearch = document.getElementById('dictSearch');
+    const sortDictWord = document.getElementById('sortDictWord');
+
+    dictSearch.addEventListener('input', (e) => {
+        clearTimeout(dictSearchTimeout);
+        dictSearchTimeout = setTimeout(() => {
+            dictSearchQuery = e.target.value.toLowerCase();
+            renderDictionary();
+        }, 150);
+    });
+
+    sortDictWord.addEventListener('click', () => {
+        dictSortDir = dictSortDir === 'asc' ? 'desc' : 'asc';
+        sortDictWord.querySelector('.sort-icon').textContent = dictSortDir === 'asc' ? '↑' : '↓';
+        renderDictionary();
+    });
+
     function renderDictionary() {
         wordListContainer.innerHTML = '';
         selectedDictWords.clear();
         updateDictBulkUI();
         checkAllDict.checked = false;
 
-        if (!settingsData.customWords || settingsData.customWords.length === 0) {
-            wordListContainer.innerHTML = '<div class="empty-state">No custom words defined yet.</div>';
+        let list = settingsData.customWords || [];
+        
+        if (dictSearchQuery) {
+            list = list.filter(w => w.toLowerCase().includes(dictSearchQuery));
+        }
+
+        list = [...list].sort((a, b) => {
+            const comp = a.localeCompare(b);
+            return dictSortDir === 'asc' ? comp : -comp;
+        });
+
+        if (list.length === 0) {
+            wordListContainer.innerHTML = dictSearchQuery 
+                ? '<div class="empty-state">No words match your search.</div>' 
+                : '<div class="empty-state">No custom words defined yet.</div>';
             return;
         }
-        const list = [...settingsData.customWords].reverse();
         
+        const fragment = document.createDocumentFragment();
+
         list.forEach(word => {
             const row = document.createElement('div');
             row.className = 'list-item';
@@ -244,8 +279,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 updateDictBulkUI();
             });
 
-            wordListContainer.appendChild(row);
+            fragment.appendChild(row);
         });
+
+        wordListContainer.appendChild(fragment);
     }
 
     function updateDictBulkUI() {
@@ -369,6 +406,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     const checkAllVault = document.getElementById('checkAllVault');
     let selectedVaultItems = new Set();
 
+    let vaultSearchQuery = '';
+    let vaultSortBy = 'placeholder';
+    let vaultSortDir = 'desc';
+    let vaultSearchTimeout;
+
+    const vaultSearch = document.getElementById('vaultSearch');
+    const sortVaultPlaceholder = document.getElementById('sortVaultPlaceholder');
+    const sortVaultOriginal = document.getElementById('sortVaultOriginal');
+
+    vaultSearch.addEventListener('input', (e) => {
+        clearTimeout(vaultSearchTimeout);
+        vaultSearchTimeout = setTimeout(() => {
+            vaultSearchQuery = e.target.value.toLowerCase();
+            renderVaultView();
+        }, 150);
+    });
+
+    const handleVaultSort = (colId) => {
+        if (vaultSortBy === colId) {
+            vaultSortDir = vaultSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            vaultSortBy = colId;
+            vaultSortDir = 'asc';
+        }
+        
+        sortVaultPlaceholder.classList.remove('active-sort');
+        sortVaultOriginal.classList.remove('active-sort');
+        sortVaultPlaceholder.querySelector('.sort-icon').textContent = '↕';
+        sortVaultOriginal.querySelector('.sort-icon').textContent = '↕';
+
+        const activeElem = colId === 'placeholder' ? sortVaultPlaceholder : sortVaultOriginal;
+        activeElem.classList.add('active-sort');
+        activeElem.querySelector('.sort-icon').textContent = vaultSortDir === 'asc' ? '↑' : '↓';
+        
+        renderVaultView();
+    };
+
+    sortVaultPlaceholder.addEventListener('click', () => handleVaultSort('placeholder'));
+    sortVaultOriginal.addEventListener('click', () => handleVaultSort('original'));
+
     async function renderVaultView() {
         vaultListContainer.innerHTML = '<div class="empty-state">Loading vault...</div>';
         selectedVaultItems.clear();
@@ -377,15 +454,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const vaultData = await StorageManager.getVault(); 
         const mappings = vaultData.mappings || {};
-        const entries = Object.entries(mappings);
+        let entries = Object.entries(mappings);
+
+        if (vaultSearchQuery) {
+            entries = entries.filter(([placeholder, original]) => {
+                return placeholder.toLowerCase().includes(vaultSearchQuery) || 
+                       (original && original.toLowerCase().includes(vaultSearchQuery));
+            });
+        }
+
+        entries.sort((a, b) => {
+            let valA = vaultSortBy === 'placeholder' ? a[0] : a[1];
+            let valB = vaultSortBy === 'placeholder' ? b[0] : b[1];
+            
+            valA = (valA || '').toLowerCase();
+            valB = (valB || '').toLowerCase();
+            
+            const comp = valA.localeCompare(valB);
+            return vaultSortDir === 'asc' ? comp : -comp;
+        });
 
         vaultListContainer.innerHTML = '';
         if (entries.length === 0) {
-            vaultListContainer.innerHTML = '<div class="empty-state">Vault is empty. No sensitive data stored.</div>';
+            vaultListContainer.innerHTML = vaultSearchQuery
+                ? '<div class="empty-state">No vault items match your search.</div>'
+                : '<div class="empty-state">Vault is empty. No sensitive data stored.</div>';
             return;
         }
+        
+        const fragment = document.createDocumentFragment();
 
-        entries.sort().reverse().forEach(([placeholder, original]) => {
+        entries.forEach(([placeholder, original]) => {
             const row = document.createElement('div');
             row.className = 'list-item';
             row.innerHTML = `
@@ -406,8 +505,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 updateVaultBulkUI();
             });
 
-            vaultListContainer.appendChild(row);
+            fragment.appendChild(row);
         });
+        
+        vaultListContainer.appendChild(fragment);
     }
 
     function updateVaultBulkUI() {

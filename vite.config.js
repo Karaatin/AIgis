@@ -7,8 +7,8 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: 'src/styles',
-          dest: 'src'
+          src: 'src/styles/badges.css',
+          dest: '.'
         }
       ]
     })

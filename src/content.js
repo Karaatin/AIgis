@@ -169,9 +169,14 @@ async function handleInteraction(sourceType, target, originalEvent) {
         if (settings.modules.toon) {
             currentText = ToonConverter.convert(currentText);
             
-            const lengthDiff = textAfterPii.length - currentText.length;
+            const originalLength = textAfterPii.length;
+            const optimizedLength = currentText.length;
+            const lengthDiff = originalLength - optimizedLength;
+            
             if (lengthDiff > 0) {
                 toonSavings = lengthDiff; 
+                statsDiff.charsOriginal = originalLength;
+                statsDiff.charsOptimized = optimizedLength;
             }
         }
         
