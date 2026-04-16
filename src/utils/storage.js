@@ -8,7 +8,8 @@ export const StorageManager = {
         settings: {
             enabled: true,
             debugMode: false,
-            usageProfile: 'strict'
+            usageProfile: 'strict',
+            peekMode: false
         },
         modules: {
             email: true, 

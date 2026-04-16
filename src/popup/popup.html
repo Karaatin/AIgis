@@ -44,6 +44,16 @@
         </label>
       </div>
 
+      <div class="control-row" style="margin-top: 10px;">
+        <span class="label" style="display:flex; align-items:center; gap:6px;">
+          Peek
+        </span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="togglePeekMode">
+          <span class="slider"></span>
+        </label>
+      </div>
+
       <div class="mode-switch">
         <input type="radio" name="mode" id="modeStrict" value="strict">
         <label for="modeStrict" class="mode-opt">
@@ -81,6 +91,7 @@
         <span class="key">Est. Tokens Saved</span>
       </div>
     </footer>
+    <div id="appVersion" class="version-tag"></div>
 
   </div>
   <script type="module" src="popup.js"></script>

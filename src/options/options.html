@@ -18,7 +18,7 @@
             <div class="brand">
                 <img src="../../public/icons/icon128.png" alt="Logo" class="logo">
                 <h2>AIgis</h2>
-                <span class="version-badge">${manifest.version}</span>
+                <span class="version-badge" id="sidebarVersionBadge"></span>
             </div>
 
             <nav>
@@ -28,11 +28,11 @@
                 <button class="nav-item" data-tab="dictionary">
                     <span class="icon">🛡️</span> Custom Dictionary
                 </button>
-                <button class="nav-item" data-tab="statistics">
-                    <span class="icon">📊</span> Statistics
-                </button>
                 <button class="nav-item" data-tab="data">
                     <span class="icon">💾</span> Data, Storage & Sync
+                </button>
+                <button class="nav-item" data-tab="statistics">
+                    <span class="icon">📊</span> Statistics
                 </button>
                 <button class="nav-item" data-tab="about">
                     <span class="icon">❤️</span> About
@@ -56,12 +56,17 @@
                             <span class="slider"></span>
                         </label>
                     </div>
-                </div>
 
-                <div class="card panel">
-                    <h3>Active Modules</h3>
-                    <p class="desc">Select which modules should be activated (Masking & Optimization).</p>
-                    <div class="modules-grid mt-lg" id="modulesGrid"></div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h3 style="display:flex; align-items:center; gap:6px;">Peek</h3>
+                            <p>Forcing this on automatically reveals all hidden original values on screen.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="optPeekMode">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="card panel">
@@ -89,6 +94,12 @@
                             </div>
                         </label>
                     </div>
+                </div>
+
+                <div class="card panel">
+                    <h3>Active Modules</h3>
+                    <p class="desc">Select which modules should be activated (Masking & Optimization).</p>
+                    <div class="modules-grid mt-lg" id="modulesGrid"></div>
                 </div>
 
                 <div class="card panel">
@@ -230,7 +241,7 @@
                     <img src="../../public/icons/icon128.png" class="hero-logo">
                     <h1>AIgis</h1>
                     <p class="subtitle">Secure your AI interactions with local-first privacy.</p>
-                    <span class="build-badge">Version ${manifest.version}</span>
+                    <span class="build-badge" id="aboutVersionBadge"></span>
                 </div>
                 <div class="card panel about-links">
                     <a href="https://github.com/Karaatin/AIgis" target="_blank" class="link-item">

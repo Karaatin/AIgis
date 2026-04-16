@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AIgis - Secure & Optimize AI Interactions",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Secure & optimize your AI interactions. A browser extension that masks secrets and optimizes tokens in prompts locally before sending them to LLMs.",
   "author": "Keanu Caspers - github@Karaatin",
   "icons": {
@@ -63,8 +63,12 @@
         "https://chat.deepseek.com/sign_in*",
         "https://platform.deepseek.com/sign_in*"
       ],
-      "js": ["content-loader.js"],
-      "css": ["src/styles/badges.css"],
+      "js": [
+        "content-loader.js"
+      ],
+      "css": [
+        "src/styles/badges.css"
+      ],
       "run_at": "document_start",
       "all_frames": true,
       "match_origin_as_fallback": true
@@ -72,7 +76,9 @@
   ],
   "web_accessible_resources": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "<all_urls>"
+      ],
       "resources": [
         "content-loader.js",
         "src/*",

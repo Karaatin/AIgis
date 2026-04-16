@@ -10,11 +10,50 @@ export const ResponseHandler = {
     vaultCache: {},
     observer: null,
     isPeekActive: false,
+    isPeekKeyDown: false,
+    isSettingsPeek: false,
     debounceTimer: null,
     pendingNodes: new Set(),
 
     init() {
         document.addEventListener('copy', (e) => this.handleSmartCopy(e));
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Backquote') {
+                if (this.isSettingsPeek || this.isPeekKeyDown) return;
+                this.isPeekKeyDown = true;
+                this.applyGlobalPeek(true);
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Backquote') {
+                this.isPeekKeyDown = false;
+                if (!this.isSettingsPeek) {
+                    this.applyGlobalPeek(false);
+                }
+            }
+        });
+
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+            chrome.storage.sync.get(['settings'], (res) => {
+                if (res && res.settings && res.settings.peekMode) {
+                    this.isSettingsPeek = true;
+                    this.applyGlobalPeek(true);
+                }
+            });
+
+            chrome.storage.onChanged.addListener((changes, namespace) => {
+                if (namespace === 'sync' && changes.settings) {
+                    const newSettings = changes.settings.newValue;
+                    if (newSettings && newSettings.peekMode !== undefined) {
+                        this.isSettingsPeek = newSettings.peekMode;
+                        this.applyGlobalPeek(this.isSettingsPeek || this.isPeekKeyDown);
+                    }
+                }
+            });
+        }
+
         this.startObserver();
     },
 
@@ -216,7 +255,7 @@ export const ResponseHandler = {
             const preview = original.length > 8
                 ? `${original.substring(0, 4)}...${original.substring(original.length - 4)}`
                 : '***';
-            span.title = `Original: ${preview}\n• Click to copy\n• Double-Click to reveal all`;
+            span.title = `• Hover to reveal\n• Click to copy`;
         } else {
             span.title = "Value not found in Vault";
         }
@@ -227,11 +266,31 @@ export const ResponseHandler = {
             this.copySingle(placeholder);
         });
 
-        span.addEventListener('dblclick', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.toggleGlobalPeek();
+        span.addEventListener('mouseenter', () => {
+            if (this.isPeekActive) return;
+            if (original) {
+                if (!span.dataset.uiText) {
+                    span.dataset.uiText = span.innerText;
+                }
+                span.innerText = original;
+                span.classList.add('revealed');
+            }
         });
+
+        span.addEventListener('mouseleave', () => {
+            if (this.isPeekActive) return;
+            if (original && span.dataset.uiText) {
+                span.innerText = span.dataset.uiText;
+                span.classList.remove('revealed');
+                delete span.dataset.uiText;
+            }
+        });
+
+        if (this.isPeekActive && original) {
+            span.dataset.uiText = span.innerText;
+            span.innerText = original;
+            span.classList.add('revealed');
+        }
 
         return span;
     },
@@ -244,28 +303,32 @@ export const ResponseHandler = {
         }
     },
 
-    toggleGlobalPeek() {
-        if (this.isPeekActive) return;
-        this.isPeekActive = true;
+    applyGlobalPeek(shouldPeek) {
+        if (this.isPeekActive === shouldPeek) return;
+        this.isPeekActive = shouldPeek;
+
         const badges = document.querySelectorAll('.aigis-badge');
         badges.forEach(b => {
             const ph = b.dataset.placeholder;
             const val = this.vaultCache[ph];
-            if (val) {
-                b.dataset.uiText = b.innerText;
+            if (!val) return;
+
+            if (shouldPeek) {
+                if (!b.dataset.uiText) {
+                    b.dataset.uiText = b.innerText;
+                }
                 b.innerText = val;
                 b.classList.add('revealed');
-            }
-        });
-        setTimeout(() => {
-            badges.forEach(b => {
+            } else {
                 if (b.dataset.uiText) {
+                    if (b.matches(':hover')) return; // Native CSS check to preserve the hover state
+                    
                     b.innerText = b.dataset.uiText;
                     b.classList.remove('revealed');
+                    delete b.dataset.uiText;
                 }
-            });
-            this.isPeekActive = false;
-        }, 5000);
+            }
+        });
     },
 
     handleSmartCopy(e) {
@@ -301,7 +364,7 @@ export const ResponseHandler = {
         const cleanText = container.innerText;
         if (e.clipboardData) {
             e.clipboardData.setData('text/plain', cleanText);
-            this.showToast("📋 Copied with unmasked/decoded values!");
+            this.showToast("Copied with unmasked/decoded values!");
         }
     },
 

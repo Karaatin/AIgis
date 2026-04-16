@@ -18,6 +18,7 @@ const MODULES_UI = [
 document.addEventListener('DOMContentLoaded', async () => {
 
     const toggleEnabled = document.getElementById('toggleEnabled');
+    const togglePeekMode = document.getElementById('togglePeekMode');
     const statusBadge = document.getElementById('statusBadge');
     const modeDev = document.getElementById('modeDev');
     const modeStrict = document.getElementById('modeStrict');
@@ -28,6 +29,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnOptions = document.getElementById('btnOptions');
     const statPii = document.getElementById('statPii');
     const statTokens = document.getElementById('statTokens');
+    const appVersion = document.getElementById('appVersion');
+
+    if (appVersion && typeof chrome !== 'undefined' && chrome.runtime) {
+        appVersion.textContent = "AIgis - v" + chrome.runtime.getManifest().version;
+    }
 
     document.body.classList.add('preload');
 
@@ -56,11 +62,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const isEnabled = toggleEnabled.checked;
         settingsData.settings.enabled = isEnabled;
-        
+
         if (isEnabled) {
 
             const anyModOn = Object.values(settingsData.modules).some(val => val === true);
-            
+
             if (!anyModOn) {
                 for (let key in settingsData.modules) {
                     settingsData.modules[key] = true;
@@ -71,6 +77,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         await StorageManager.saveSettings(settingsData);
         renderAll();
 
+    });
+
+    togglePeekMode.addEventListener('change', async () => {
+        settingsData.settings.peekMode = togglePeekMode.checked;
+        await StorageManager.saveSettings(settingsData);
     });
 
     const handleModeChange = async (e) => {
@@ -90,8 +101,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!settingsData) return;
 
         const isGlobalOn = settingsData.settings.enabled;
-        
+
         toggleEnabled.checked = isGlobalOn;
+        togglePeekMode.checked = settingsData.settings.peekMode || false;
+
         if (isGlobalOn) {
             statusBadge.innerText = "ACTIVE";
             statusBadge.className = "badge active";
@@ -118,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         MODULES_UI.forEach(mod => {
             const isModOn = settingsData.modules[mod.id];
-            
+
             let stateClass = '';
             if (!isGlobalOn) {
                 stateClass = 'disabled-view';
@@ -128,14 +141,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const card = document.createElement('div');
             card.className = `module-card ${stateClass}`;
-            
+
             card.innerHTML = `
                 <span class="module-icon">${mod.icon}</span>
                 <span class="module-label">${mod.label}</span>
             `;
 
             card.addEventListener('click', async () => {
-                
+
                 if (!isGlobalOn) {
                     settingsData.settings.enabled = true;
                     for (let key in settingsData.modules) settingsData.modules[key] = false;
@@ -180,7 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     inputWord.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnAddWord.click(); });
-    
+
     btnOptions.addEventListener('click', () => {
 
         if (chrome.runtime.openOptionsPage) chrome.runtime.openOptionsPage();
@@ -196,5 +209,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => feedbackMsg.style.opacity = '0', 2000);
 
     }
-    
+
 });

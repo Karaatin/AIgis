@@ -481,3 +481,14 @@ footer {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
 }
+
+.version-tag {
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    margin-top: -2px;
+    margin-bottom: -8px;
+    font-family: monospace;
+    letter-spacing: 0.5px;
+}

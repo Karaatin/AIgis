@@ -126,6 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // general settings
     const optEnabled = document.getElementById('optEnabled');
     const optDebug = document.getElementById('optDebug');
+    const optPeekMode = document.getElementById('optPeekMode');
     
     const modulesGrid = document.getElementById('modulesGrid');
     function renderModulesGrid() {
@@ -157,6 +158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const renderMainToggles = () => {
         optEnabled.checked = settingsData.settings.enabled;
         optDebug.checked = settingsData.settings.debugMode;
+        optPeekMode.checked = settingsData.settings.peekMode;
         renderModulesGrid();
     };
     renderMainToggles();
@@ -170,6 +172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderMainToggles();
     });
     optDebug.addEventListener('change', () => { settingsData.settings.debugMode = optDebug.checked; save(); });
+    optPeekMode.addEventListener('change', () => { settingsData.settings.peekMode = optPeekMode.checked; save(); });
 
     // mode switch (strict / dev)
     const modeStrict = document.getElementById('modeStrict');
