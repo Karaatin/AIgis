@@ -11,25 +11,77 @@ const initLogger = async () => {
         const data = await StorageManager.getSettings();
         Logger.init(data);
 
-        // ensure icon state matches initial settings on boot
-        if (data && data.settings) {
-            updateIconState(data.settings.enabled);
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tabs.length > 0 && tabs[0].url) {
+            await evaluateIconState(tabs[0].id, tabs[0].url);
+        } else if (data && data.settings) {
+            updateIconState(null, data.settings.enabled);
         }
     } catch (e) {
         console.error("Failed to init logger:", e);
     }
 };
 
-const updateIconState = (isEnabled) => {
+const updateIconState = (tabId, isEnabled) => {
     const suffix = isEnabled ? "" : "-off";
-    chrome.action.setIcon({
+    const options = {
         path: {
             "16": `/icons/icon16${suffix}.png`,
             "48": `/icons/icon48${suffix}.png`,
             "128": `/icons/icon128${suffix}.png`
         }
-    }).catch(err => console.warn("Icon update failed:", err));
+    };
+    if (tabId) options.tabId = tabId;
+
+    chrome.action.setIcon(options).catch(err => console.warn("Icon update failed:", err));
 };
+
+function isSupportedUrl(url) {
+    if (!url) return false;
+    try {
+        const manifest = chrome.runtime.getManifest();
+        const matches = manifest.content_scripts?.[0]?.matches || [];
+
+        const hostname = new URL(url).hostname;
+
+        return matches.some(pattern => {
+            // extract domain from match pattern (e.g. "https://chatgpt.com/*" -> "chatgpt.com")
+            const match = pattern.match(/:\/\/(?:\*\.)?([^/]+)/);
+            if (match && match[1]) {
+                const domain = match[1];
+                return hostname === domain || hostname.endsWith('.' + domain);
+            }
+            return false;
+        });
+    } catch { return false; }
+}
+
+async function evaluateIconState(tabId, url) {
+    try {
+        const data = await StorageManager.getSettings();
+        const isGlobalEnabled = data?.settings?.enabled ?? true;
+
+        if (!isGlobalEnabled) {
+            updateIconState(tabId, false);
+            return;
+        }
+
+        updateIconState(tabId, isSupportedUrl(url));
+    } catch (e) {
+        console.warn("evaluateIconState failed:", e);
+    }
+}
+
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
+    try {
+        const tab = await chrome.tabs.get(activeInfo.tabId);
+        if (tab.url) await evaluateIconState(tab.id, tab.url);
+    } catch (e) { }
+});
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    await evaluateIconState(tabId, tab.url);
+});
 
 /**
  * lifecycle: ON INSTALLED / UPDATED
@@ -38,6 +90,9 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
     await initLogger();
     Logger.info(`AIgis Service Worker: Event '${details.reason}' detected.`);
+
+    // cleanup expired vault entries
+    await StorageManager.pruneVault();
 
     chrome.contextMenus.create({
         id: "decode-toon",
@@ -88,7 +143,13 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
             Logger.info("🛡️ [AIgis Background] Debug Mode updated via Settings.");
 
             if (newSettingsObj.enabled !== undefined) {
-                updateIconState(newSettingsObj.enabled);
+                chrome.tabs.query({ active: true, currentWindow: true }).then(async (tabs) => {
+                    if (tabs.length > 0 && tabs[0].url) {
+                        await evaluateIconState(tabs[0].id, tabs[0].url);
+                    } else {
+                        updateIconState(null, newSettingsObj.enabled);
+                    }
+                });
             }
         }
     }

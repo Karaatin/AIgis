@@ -14,7 +14,7 @@
     <a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
     <img src="https://img.shields.io/badge/Status-Active_Development-orange.svg" alt="Status">
     <img src="https://img.shields.io/badge/Platform-Chromium-lightgrey.svg" alt="Platform">
-    <img src="https://img.shields.io/badge/Version-v0.3.0-brightgreen.svg" alt="Version">
+    <img src="https://img.shields.io/badge/Version-v0.4.0-brightgreen.svg" alt="Version">
   </p>
 </div>
 
@@ -48,8 +48,9 @@ Many companies and individuals hesitate to use tools like ChatGPT, Claude, Gemin
 * **Smart Copy:** Don't worry about trying to extract information! Just highlight the LLM's text and copy it normally (`Ctrl+C` or `Cmd+C`). AIgis seamlessly intercepts the system's copy pipeline, unmasks the placeholders, natively decodes any TOON blocks to JSON, and injects the raw, safe data straight to your clipboard!
 * **Context Menus:** Features a built-in *Right-Click -> Decode TOON to Clipboard* tool! If the LLM generates raw TOON syntax and misses the auto-decoder, simply highlight the block and right-click to natively restore the JSON to your clipboard!
 
-### 💾 4. Secure Vault & Local Storage
+### 🛡️ 4. Secure Vault & Local Storage
 * **Local-First Architecture:** AIgis operates without external servers. Your secure mapping Vault (which links generic Placeholders back to their real PII strings) is stored strictly and persistently inside your browser's native local storage.
+* **Auto-Pruning & Expiration:** The Vault features a configurable auto-pruning mechanism. Mappings are assigned an automatic time-to-live (default 30 days) ensuring that old, stale context data is silently and permanently destroyed to reduce forensic risk. You can effortlessly track and individually renew or change these expirations through the Dashboard.
 * **Interactive Dashboard:** Use the built-in AIgis Dashboard to live-search and dynamically sort your protected Vault entries, trace global token-saving metrics, manage your Custom Dictionaries, and import/export your configuration files securely.
  
 ---
@@ -122,3 +123,11 @@ npm run build
 
 # 4. Load the 'dist' folder in Chrome/Edge (via "Load unpacked")
 ```
+
+---
+
+## ⚠️ Disclaimer
+
+**AIgis is provided "AS IS", without warranty of any kind.** While this extension uses pattern matching and dictionaries to mask sensitive data, no regular expression or heuristic is 100% foolproof. Edge cases, typos, or obfuscated formats may bypass the detection engine. 
+
+You are ultimately responsible for the data you enter into LLM platforms. The developers of AIgis are not liable for any accidental data leaks, privacy breaches, or damages resulting from the use or failure of this software. Always double-check your prompts if they contain highly sensitive or classified information.

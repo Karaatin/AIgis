@@ -234,7 +234,7 @@ export const ResponseHandler = {
         container.appendChild(header);
         container.appendChild(content);
 
-        const target = (originalNode.tagName === 'CODE' && originalNode.parentElement.tagName === 'PRE')
+        const target = (originalNode.tagName === 'CODE' && originalNode.parentElement && originalNode.parentElement.tagName === 'PRE')
             ? originalNode.parentElement
             : originalNode;
 
@@ -322,7 +322,7 @@ export const ResponseHandler = {
             } else {
                 if (b.dataset.uiText) {
                     if (b.matches(':hover')) return; // Native CSS check to preserve the hover state
-                    
+
                     b.innerText = b.dataset.uiText;
                     b.classList.remove('revealed');
                     delete b.dataset.uiText;

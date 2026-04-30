@@ -35,12 +35,13 @@ export default class PathMask extends piiBaseMask {
                     path.includes('node_modules') ||
                     path.includes('/usr/bin/') ||
                     path.includes('/usr/local/') ||
-                    path.includes('/etc/') ||
+                    path.includes('etc/') ||
                     path.includes('src/') ||
                     path.includes('utils/') ||
+                    path.includes('scripts/') ||
+                    path.includes('opt/') |
                     path.startsWith('./') ||
-                    path.startsWith('../') ||
-                    path.includes('.github');
+                    path.startsWith('../');
 
                 if (isSafeDevPath) {
                     continue;

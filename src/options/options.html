@@ -26,10 +26,7 @@
                     <span class="icon">⚙️</span> General
                 </button>
                 <button class="nav-item" data-tab="dictionary">
-                    <span class="icon">🛡️</span> Custom Dictionary
-                </button>
-                <button class="nav-item" data-tab="data">
-                    <span class="icon">💾</span> Data, Storage & Sync
+                    <span class="icon">🛡️</span> Data & Dictionaries
                 </button>
                 <button class="nav-item" data-tab="statistics">
                     <span class="icon">📊</span> Statistics
@@ -118,19 +115,28 @@
 
             <section id="dictionary" class="tab-content">
                 <div class="header-row">
-                    <h1>Custom Dictionary</h1>
-                    <div class="actions">
-                        <button id="btnBulkDeleteDict" class="btn danger-sm hidden">Delete Selected (<span
-                                id="countDict">0</span>)</button>
-                        <button id="btnDeleteAllDict" class="btn danger-outline">Delete All</button>
-                    </div>
+                    <h1>Data & Dictionaries</h1>
                 </div>
                 <div class="card panel">
-                    <div class="input-group-lg">
+                    <div class="header-row" style="margin-bottom: 15px;">
+                        <h3>Custom Words List</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="btnBulkDeleteDict" class="btn danger-sm hidden">Delete Selected (<span
+                                    id="countDict">0</span>)</button>
+                        </div>
+                    </div>
+
+                    <p class="desc" style="margin-bottom: 20px;">
+                        Add code-names, proprietary terms, or specific words you want masked before any prompt leaves
+                        your browser.
+                    </p>
+
+                    <div class="input-group-lg" style="margin-bottom: 5px;">
                         <input type="text" id="dictInput" placeholder="Enter word to block (e.g. Project Apollo)...">
                         <button id="dictAddBtn">Add Entry</button>
                     </div>
-                    <div class="search-bar-sm">
+                    <div id="dictFeedbackMsg" class="block-feedback"></div>
+                    <div class="search-bar-sm" style="margin-bottom: 15px;">
                         <span class="icon">🔍</span>
                         <input type="search" id="dictSearch" placeholder="Search dictionary...">
                     </div>
@@ -139,13 +145,80 @@
                             <div class="col-check">
                                 <input type="checkbox" id="checkAllDict">
                             </div>
-                            <span class="col-1 col-sortable" id="sortDictWord" data-dir="desc">Word / Phrase <span
-                                    class="sort-icon">↕</span></span>
+                            <span class="col-1 col-sortable active-sort" id="sortDictWord" data-dir="desc">Word / Phrase
+                                <span class="sort-icon">↓</span></span>
                             <span class="text-right" style="width: 80px; text-align: right;">Actions</span>
                         </div>
                         <div id="wordListContainer" class="list-scroll-area">
                             <div class="empty-state">No custom words defined yet.</div>
                         </div>
+                    </div>
+                    <div class="pagination-controls" id="dictPagination">
+                        <button id="dictPrevBtn" class="btn secondary" disabled>&laquo; Prev</button>
+                        <span id="dictPageInfo" class="mono-accent">Page 1 of 1</span>
+                        <button id="dictNextBtn" class="btn secondary" disabled>Next &raquo;</button>
+                    </div>
+                    <div class="btn-row" style="margin-top: 15px;">
+                        <button id="btnClearDictionary" class="btn danger">Clear Custom Words</button>
+                    </div>
+                </div>
+
+                <div class="card panel">
+                    <div class="header-row" style="margin-bottom: 15px;">
+                        <h3>Active Vault (Restoration Data)</h3>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="font-size: 0.85rem; color: var(--text-muted); margin-right: 10px; display: flex; align-items: center; gap: 8px;">Auto-prune (days): <input type="number" id="vaultPruneDays" min="1" max="365" class="modal-input" style="width: 65px; margin-bottom: 0; padding: 6px 8px; text-align: center; font-size: 0.9rem;"></label>
+                            <button id="btnBulkDeleteVault" class="btn danger-sm hidden">Delete Selected (<span
+                                    id="countVault">0</span>)</button>
+                        </div>
+                    </div>
+
+                    <p class="desc" style="margin-bottom: 20px;">
+                        This table shows the placeholders (and linked original values) currently stored in your local
+                        vault for restoration.
+                    </p>
+                    <div class="search-bar-sm" style="margin-bottom: 15px;">
+                        <span class="icon">🔍</span>
+                        <input type="search" id="vaultSearch"
+                            placeholder="Search items by placeholder or original value...">
+                    </div>
+                    <div class="list-wrapper" style="margin-top: 10px;">
+                        <div class="list-header">
+                            <div class="col-check">
+                                <input type="checkbox" id="checkAllVault">
+                            </div>
+                            <span class="col-1 col-sortable active-sort" id="sortVaultPlaceholder"
+                                data-dir="desc">Placeholder <span class="sort-icon">↑</span></span>
+                            <span class="col-2 col-sortable" id="sortVaultOriginal" data-dir="asc">Original Value <span
+                                    class="sort-icon">↕</span></span>
+                            <span class="text-right" style="width: 80px; text-align: right;">Actions</span>
+                        </div>
+                        <div id="vaultListContainer" class="list-scroll-area">
+                            <div class="empty-state">Loading vault...</div>
+                        </div>
+                    </div>
+                    <div class="pagination-controls" id="vaultPagination">
+                        <button id="vaultPrevBtn" class="btn secondary" disabled>&laquo; Prev</button>
+                        <span id="vaultPageInfo" class="mono-accent">Page 1 of 1</span>
+                        <button id="vaultNextBtn" class="btn secondary" disabled>Next &raquo;</button>
+                    </div>
+                    <div class="btn-row" style="margin-top: 15px;">
+                        <button id="btnClearVault" class="btn danger">Clear Vault</button>
+                    </div>
+                </div>
+
+                <div class="card panel">
+                    <h3>Import / Export Hub</h3>
+                    <p class="desc">Share custom dictionaries with teams or backup your settings securely.</p>
+                    <div class="btn-row" style="margin-top: 15px;">
+                        <button id="btnImportSettings" class="btn primary">Import</button>
+                        <input type="file" id="fileImportSettings" hidden accept=".json">
+
+                        <div style="flex-grow: 1;"></div>
+
+                        <button id="btnExportConfig" class="btn secondary">Export Configuration</button>
+                        <button id="btnExportDictionary" class="btn secondary">Export Dictionary</button>
+                        <button id="btnExportVault" class="btn secondary">Export Vault</button>
                     </div>
                 </div>
             </section>
@@ -186,55 +259,6 @@
                 </div>
             </section>
 
-            <section id="data" class="tab-content">
-                <h1>Data, Storage & Sync</h1>
-                <div class="card panel">
-                    <div class="header-row" style="margin-bottom: 15px;">
-                        <h3>Active Vault (Restoration Data)</h3>
-                        <button id="btnBulkDeleteVault" class="btn danger-sm hidden">Delete Selected (<span
-                                id="countVault">0</span>)</button>
-                    </div>
-
-                    <p class="desc">
-                        This table shows the placeholders (and linked original values) currently stored in your local
-                        vault for restoration.
-                    </p>
-                    <div class="search-bar-sm mt-lg">
-                        <span class="icon">🔍</span>
-                        <input type="search" id="vaultSearch"
-                            placeholder="Search items by placeholder or original value...">
-                    </div>
-                    <div class="list-wrapper" style="margin-top: 10px;">
-                        <div class="list-header">
-                            <div class="col-check">
-                                <input type="checkbox" id="checkAllVault">
-                            </div>
-                            <span class="col-1 col-sortable active-sort" id="sortVaultPlaceholder"
-                                data-dir="desc">Placeholder <span class="sort-icon">↓</span></span>
-                            <span class="col-2 col-sortable" id="sortVaultOriginal" data-dir="asc">Original Value <span
-                                    class="sort-icon">↕</span></span>
-                        </div>
-                        <div id="vaultListContainer" class="list-scroll-area">
-                            <div class="empty-state">Loading vault...</div>
-                        </div>
-                    </div>
-                    <div class="btn-row">
-                        <button id="btnExportVault" class="btn secondary">Export Vault</button>
-                        <button id="btnImportVault" class="btn secondary">Import Vault</button>
-                        <input type="file" id="fileImportVault" hidden accept=".json">
-                        <button id="btnClearVault" class="btn danger">Clear Vault</button>
-                    </div>
-                </div>
-                <div class="card panel">
-                    <h3>Settings Backup</h3>
-                    <p class="desc">Export your configuration and custom dictionary to a JSON file.</p>
-                    <div class="btn-row">
-                        <button id="btnExportSettings" class="btn primary">Export Settings</button>
-                        <button id="btnImportSettings" class="btn secondary">Import Settings</button>
-                        <input type="file" id="fileImportSettings" hidden accept=".json">
-                    </div>
-                </div>
-            </section>
 
             <section id="about" class="tab-content">
                 <div class="hero-center">
@@ -260,14 +284,50 @@
                             <small id="updateStatus">Current version is up to date.</small>
                         </div>
                     </div>
-                    <div class="link-item">
+                    <a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE" target="_blank" class="link-item">
                         <span class="icon">📜</span>
                         <div>
                             <strong>License</strong>
                             <br>
                             <small>Open Source under GPLv3.</small>
                         </div>
-                    </div>
+                    </a>
+                    <a href="https://github.com/Karaatin/AIgis/blob/main/PRIVACY.md" target="_blank" class="link-item">
+                        <span class="icon">🔒</span>
+                        <div>
+                            <strong>Privacy Policy</strong>
+                            <br>
+                            <small>Read our zero-data collection policy.</small>
+                        </div>
+                    </a>
+                    <a href="https://karaatin.github.io/AIgis/" target="_blank" class="link-item">
+                        <span class="icon">🌐</span>
+                        <div>
+                            <strong>Official Website</strong>
+                            <br>
+                            <small>Visit the official AIgis-Extension webpage.</small>
+                        </div>
+                    </a>
+                    <a href="https://github.com/Karaatin/AIgis/issues" target="_blank" class="link-item">
+                        <span class="icon">🐛</span>
+                        <div>
+                            <strong>Report an Issue</strong>
+                            <br>
+                            <small>Found a bug? Let me know.</small>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="card panel"
+                    style="margin-top: 30px; padding: 20px; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2);">
+                    <h3 style="color: var(--danger); font-size: 1rem; margin-bottom: 6px;">⚠️ Limitation of Liability
+                    </h3>
+                    <p class="desc" style="font-size: 0.85rem;">
+                        AIgis uses pattern matching to detect and mask sensitive information. No detection system is
+                        100% flawless. Edge cases, obfuscated text, or malformed data may bypass the engine. AIgis is
+                        provided "as is" and its developers are not liable for any data leaks resulting from the use or
+                        failure of this software. Always review your prompts before submitting.
+                    </p>
                 </div>
                 <div style="text-align: center; margin-top: 40px; color: var(--text-muted); font-size: 0.8rem;">
                     Made with ❤️ for Privacy & AI.

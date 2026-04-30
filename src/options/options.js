@@ -12,7 +12,7 @@ const Modal = {
     input: document.getElementById('modalInput'),
     btnConfirm: document.getElementById('modalConfirm'),
     btnCancel: document.getElementById('modalCancel'),
-    
+
     resolvePromise: null,
 
     init() {
@@ -32,12 +32,12 @@ const Modal = {
     async open(title, message, type = 'confirm', defaultValue = '') {
         this.title.textContent = title;
         this.msg.textContent = message;
-        
+
         this.btnConfirm.className = 'btn primary';
         this.btnConfirm.textContent = 'Confirm';
 
         this.overlay.setAttribute('aria-hidden', 'false');
-        
+
         if (type === 'danger') {
             this.btnConfirm.className = 'btn danger';
             this.btnConfirm.textContent = 'Delete';
@@ -66,7 +66,7 @@ const Modal = {
         this.overlay.setAttribute('aria-hidden', 'true');
         this.overlay.classList.remove('open');
         const value = this.input.value.trim();
-        
+
         if (this.resolvePromise) {
             if (isConfirmed && !this.inputContainer.classList.contains('hidden')) {
                 this.resolvePromise(value);
@@ -119,7 +119,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 sec.classList.remove('active');
                 if (sec.id === btn.dataset.tab) sec.classList.add('active');
             });
-            if (btn.dataset.tab === 'data') renderVaultView();
+            if (btn.dataset.tab === 'dictionary') {
+                renderVaultView();
+            }
         });
     });
 
@@ -127,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const optEnabled = document.getElementById('optEnabled');
     const optDebug = document.getElementById('optDebug');
     const optPeekMode = document.getElementById('optPeekMode');
-    
+
     const modulesGrid = document.getElementById('modulesGrid');
     function renderModulesGrid() {
         if (!modulesGrid) return;
@@ -146,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     settingsData.modules[mod.id] = true;
                 } else {
                     settingsData.modules[mod.id] = !settingsData.modules[mod.id];
-                    if (!Object.values(settingsData.modules).some(v=>v)) settingsData.settings.enabled = false;
+                    if (!Object.values(settingsData.modules).some(v => v)) settingsData.settings.enabled = false;
                 }
                 await save();
                 renderMainToggles();
@@ -165,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     optEnabled.addEventListener('change', () => {
         settingsData.settings.enabled = optEnabled.checked;
-        if(settingsData.settings.enabled && !Object.values(settingsData.modules).some(v=>v)) {
+        if (settingsData.settings.enabled && !Object.values(settingsData.modules).some(v => v)) {
             for (let key in settingsData.modules) settingsData.modules[key] = true;
         }
         save();
@@ -186,8 +188,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dictInput = document.getElementById('dictInput');
     const dictAddBtn = document.getElementById('dictAddBtn');
     const wordListContainer = document.getElementById('wordListContainer');
-    const btnDeleteAllDict = document.getElementById('btnDeleteAllDict');
-    
+    const btnClearDictionary = document.getElementById('btnClearDictionary');
+
     const btnBulkDeleteDict = document.getElementById('btnBulkDeleteDict');
     const countDictSpan = document.getElementById('countDict');
     const checkAllDict = document.getElementById('checkAllDict');
@@ -195,22 +197,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let dictSearchQuery = '';
     let dictSortDir = 'asc';
-    let dictSearchTimeout;
+    const DICT_ITEMS_PER_PAGE = 50;
+    let dictCurrentPage = 1;
 
     const dictSearch = document.getElementById('dictSearch');
     const sortDictWord = document.getElementById('sortDictWord');
+    const dictPrevBtn = document.getElementById('dictPrevBtn');
+    const dictNextBtn = document.getElementById('dictNextBtn');
+    const dictPageInfo = document.getElementById('dictPageInfo');
 
     dictSearch.addEventListener('input', (e) => {
-        clearTimeout(dictSearchTimeout);
-        dictSearchTimeout = setTimeout(() => {
-            dictSearchQuery = e.target.value.toLowerCase();
-            renderDictionary();
-        }, 150);
+        dictSearchQuery = e.target.value.toLowerCase();
+        dictCurrentPage = 1;
+        renderDictionary();
     });
+
+    dictPrevBtn.addEventListener('click', () => { if (dictCurrentPage > 1) { dictCurrentPage--; renderDictionary(); } });
+    dictNextBtn.addEventListener('click', () => { dictCurrentPage++; renderDictionary(); });
 
     sortDictWord.addEventListener('click', () => {
         dictSortDir = dictSortDir === 'asc' ? 'desc' : 'asc';
-        sortDictWord.querySelector('.sort-icon').textContent = dictSortDir === 'asc' ? '↑' : '↓';
+        sortDictWord.querySelector('.sort-icon').textContent = dictSortDir === 'asc' ? '↓' : '↑';
         renderDictionary();
     });
 
@@ -221,7 +228,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         checkAllDict.checked = false;
 
         let list = settingsData.customWords || [];
-        
+
         if (dictSearchQuery) {
             list = list.filter(w => w.toLowerCase().includes(dictSearchQuery));
         }
@@ -232,15 +239,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         if (list.length === 0) {
-            wordListContainer.innerHTML = dictSearchQuery 
-                ? '<div class="empty-state">No words match your search.</div>' 
+            wordListContainer.innerHTML = dictSearchQuery
+                ? '<div class="empty-state">No words match your search.</div>'
                 : '<div class="empty-state">No custom words defined yet.</div>';
+
+            dictPageInfo.textContent = `Page 1 of 1`;
+            dictPrevBtn.disabled = true;
+            dictNextBtn.disabled = true;
             return;
         }
-        
+
+        const totalPages = Math.ceil(list.length / DICT_ITEMS_PER_PAGE);
+        if (dictCurrentPage > totalPages) dictCurrentPage = totalPages;
+
+        dictPageInfo.textContent = `Page ${dictCurrentPage} of ${totalPages}`;
+        dictPrevBtn.disabled = dictCurrentPage === 1;
+        dictNextBtn.disabled = dictCurrentPage === totalPages;
+
+        const paginatedList = list.slice((dictCurrentPage - 1) * DICT_ITEMS_PER_PAGE, dictCurrentPage * DICT_ITEMS_PER_PAGE);
+
         const fragment = document.createDocumentFragment();
 
-        list.forEach(word => {
+        paginatedList.forEach(word => {
             const row = document.createElement('div');
             row.className = 'list-item';
             row.innerHTML = `
@@ -250,7 +270,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <button class="action-icon-btn edit" title="Edit">✎</button>
                     <button class="action-icon-btn delete" title="Delete">✕</button>
                 </div>`;
-            
+
             row.querySelector('.delete').addEventListener('click', async () => {
                 const confirm = await Modal.open('Delete Word', `Remove "${word}" from custom dictionary?`, 'danger');
                 if (confirm) {
@@ -312,22 +332,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    const dictFeedbackMsg = document.getElementById('dictFeedbackMsg');
+
+    function showDictFeedback(msg) {
+        if (!dictFeedbackMsg) return;
+        dictFeedbackMsg.textContent = msg;
+        dictFeedbackMsg.style.opacity = '1';
+        setTimeout(() => dictFeedbackMsg.style.opacity = '0', 2000);
+    }
+
     dictAddBtn.addEventListener('click', async () => {
         const word = dictInput.value.trim();
-        if (word && !settingsData.customWords.includes(word)) {
-            settingsData.customWords.push(word);
-            await save();
-            renderDictionary();
+        if (word) {
+            if (!settingsData.customWords.includes(word)) {
+                settingsData.customWords.push(word);
+                await save();
+                renderDictionary();
+                showDictFeedback(`Blocked "${word}"`);
+            } else {
+                showDictFeedback(`${word} already blocked`);
+            }
             dictInput.value = '';
         }
     });
-    dictInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') dictAddBtn.click(); });
-    
-    btnDeleteAllDict.addEventListener('click', async () => {
-        const confirm = await Modal.open('Delete All', 'Really delete ALL custom dictionary entries?', 'danger');
+    dictInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') dictAddBtn.click(); });
+
+    btnClearDictionary.addEventListener('click', async () => {
+        const confirm = await Modal.open('Clear Dictionary', 'Really delete ALL custom dictionary entries?', 'danger');
         if (confirm) {
             settingsData.customWords = [];
             await save();
+            dictCurrentPage = 1;
             renderDictionary();
         }
     });
@@ -344,13 +379,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         statPii.textContent = statsData.piiTotal || 0;
         statPrompts.textContent = statsData.totalPrompts || 0;
-        
+
         const toonStats = statsData.toon || { conversions: 0, originalChars: 0, optimizedChars: 0, estimatedTokensSaved: 0 };
         let saved = Math.round(toonStats.estimatedTokensSaved || 0);
         statTokens.textContent = saved > 1000 ? (saved / 1000).toFixed(1) + 'k' : saved;
 
         statsBody.innerHTML = '';
-        
+
         // pii
         const piiHeader = document.createElement('tr');
         piiHeader.innerHTML = '<td colspan="2" class="group-header">PII MASKING STATS</td>';
@@ -398,12 +433,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // vault logic
+    const vaultPruneDaysInput = document.getElementById('vaultPruneDays');
+    if (vaultPruneDaysInput) {
+        vaultPruneDaysInput.value = settingsData.settings.vaultPruneDays || 30;
+        vaultPruneDaysInput.addEventListener('change', async (e) => {
+            let val = parseInt(e.target.value, 10);
+            if (isNaN(val) || val < 1) { val = 1; e.target.value = 1; }
+            settingsData.settings.vaultPruneDays = val;
+            await StorageManager.saveSettings(settingsData);
+        });
+    }
+
     const vaultListContainer = document.getElementById('vaultListContainer');
     const btnClearVault = document.getElementById('btnClearVault');
     const btnExportVault = document.getElementById('btnExportVault');
     const btnImportVault = document.getElementById('btnImportVault');
     const fileImportVault = document.getElementById('fileImportVault');
-    
+
     const btnBulkDeleteVault = document.getElementById('btnBulkDeleteVault');
     const countVaultSpan = document.getElementById('countVault');
     const checkAllVault = document.getElementById('checkAllVault');
@@ -412,19 +458,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     let vaultSearchQuery = '';
     let vaultSortBy = 'placeholder';
     let vaultSortDir = 'desc';
-    let vaultSearchTimeout;
+    const VAULT_ITEMS_PER_PAGE = 50;
+    let vaultCurrentPage = 1;
 
     const vaultSearch = document.getElementById('vaultSearch');
     const sortVaultPlaceholder = document.getElementById('sortVaultPlaceholder');
     const sortVaultOriginal = document.getElementById('sortVaultOriginal');
+    const vaultPrevBtn = document.getElementById('vaultPrevBtn');
+    const vaultNextBtn = document.getElementById('vaultNextBtn');
+    const vaultPageInfo = document.getElementById('vaultPageInfo');
 
     vaultSearch.addEventListener('input', (e) => {
-        clearTimeout(vaultSearchTimeout);
-        vaultSearchTimeout = setTimeout(() => {
-            vaultSearchQuery = e.target.value.toLowerCase();
-            renderVaultView();
-        }, 150);
+        vaultSearchQuery = e.target.value.toLowerCase();
+        vaultCurrentPage = 1;
+        renderVaultView();
     });
+
+    vaultPrevBtn.addEventListener('click', () => { if (vaultCurrentPage > 1) { vaultCurrentPage--; renderVaultView(); } });
+    vaultNextBtn.addEventListener('click', () => { vaultCurrentPage++; renderVaultView(); });
 
     const handleVaultSort = (colId) => {
         if (vaultSortBy === colId) {
@@ -433,7 +484,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             vaultSortBy = colId;
             vaultSortDir = 'asc';
         }
-        
+
         sortVaultPlaceholder.classList.remove('active-sort');
         sortVaultOriginal.classList.remove('active-sort');
         sortVaultPlaceholder.querySelector('.sort-icon').textContent = '↕';
@@ -441,8 +492,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const activeElem = colId === 'placeholder' ? sortVaultPlaceholder : sortVaultOriginal;
         activeElem.classList.add('active-sort');
-        activeElem.querySelector('.sort-icon').textContent = vaultSortDir === 'asc' ? '↑' : '↓';
-        
+        activeElem.querySelector('.sort-icon').textContent = vaultSortDir === 'asc' ? '↓' : '↑';
+
         renderVaultView();
     };
 
@@ -450,29 +501,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     sortVaultOriginal.addEventListener('click', () => handleVaultSort('original'));
 
     async function renderVaultView() {
-        vaultListContainer.innerHTML = '<div class="empty-state">Loading vault...</div>';
         selectedVaultItems.clear();
         updateVaultBulkUI();
         checkAllVault.checked = false;
 
-        const vaultData = await StorageManager.getVault(); 
+        const vaultData = await StorageManager.getVault();
         const mappings = vaultData.mappings || {};
         let entries = Object.entries(mappings);
 
         if (vaultSearchQuery) {
-            entries = entries.filter(([placeholder, original]) => {
-                return placeholder.toLowerCase().includes(vaultSearchQuery) || 
-                       (original && original.toLowerCase().includes(vaultSearchQuery));
+            entries = entries.filter(([placeholder, entry]) => {
+                const original = entry?.val || entry;
+                return placeholder.toLowerCase().includes(vaultSearchQuery) ||
+                    (original && original.toLowerCase().includes(vaultSearchQuery));
             });
         }
 
         entries.sort((a, b) => {
-            let valA = vaultSortBy === 'placeholder' ? a[0] : a[1];
-            let valB = vaultSortBy === 'placeholder' ? b[0] : b[1];
-            
+            let valA = vaultSortBy === 'placeholder' ? a[0] : (a[1]?.val || a[1]);
+            let valB = vaultSortBy === 'placeholder' ? b[0] : (b[1]?.val || b[1]);
+
             valA = (valA || '').toLowerCase();
             valB = (valB || '').toLowerCase();
-            
+
             const comp = valA.localeCompare(valB);
             return vaultSortDir === 'asc' ? comp : -comp;
         });
@@ -482,18 +533,48 @@ document.addEventListener('DOMContentLoaded', async () => {
             vaultListContainer.innerHTML = vaultSearchQuery
                 ? '<div class="empty-state">No vault items match your search.</div>'
                 : '<div class="empty-state">Vault is empty. No sensitive data stored.</div>';
+
+            vaultPageInfo.textContent = `Page 1 of 1`;
+            vaultPrevBtn.disabled = true;
+            vaultNextBtn.disabled = true;
             return;
         }
-        
+
+        const totalPages = Math.ceil(entries.length / VAULT_ITEMS_PER_PAGE);
+        if (vaultCurrentPage > totalPages) vaultCurrentPage = totalPages;
+
+        vaultPageInfo.textContent = `Page ${vaultCurrentPage} of ${totalPages}`;
+        vaultPrevBtn.disabled = vaultCurrentPage === 1;
+        vaultNextBtn.disabled = vaultCurrentPage === totalPages;
+
+        const paginatedEntries = entries.slice((vaultCurrentPage - 1) * VAULT_ITEMS_PER_PAGE, vaultCurrentPage * VAULT_ITEMS_PER_PAGE);
+
         const fragment = document.createDocumentFragment();
 
-        entries.forEach(([placeholder, original]) => {
+        paginatedEntries.forEach(([placeholder, entry]) => {
             const row = document.createElement('div');
             row.className = 'list-item';
+
+            const original = entry?.val || entry;
+            let expirationText = '';
+
+            if (entry?.expiresAt) {
+                const daysRemaining = Math.max(0, Math.ceil((entry.expiresAt - Date.now()) / (1000 * 60 * 60 * 24)));
+                const dateStr = new Date(entry.expiresAt).toLocaleDateString();
+                const colorClass = daysRemaining < 3 ? 'txt-danger' : 'txt-dimmed';
+                expirationText = `<div class="prune-date ${colorClass}" style="font-size: 0.75rem; margin-top: 4px;">Prunes on ${dateStr} (${daysRemaining}d)</div>`;
+            }
+
             row.innerHTML = `
                 <div class="col-check"><input type="checkbox" class="vault-check" value="${placeholder}"></div>
-                <span class="col-1 mono-accent">${placeholder}</span>
+                <div class="col-1">
+                    <span class="mono-accent">${placeholder}</span>
+                    ${expirationText}
+                </div>
                 <span class="col-2" title="${original}">${original}</span>
+                <div class="item-actions text-right" style="width: 80px; justify-content: flex-end;">
+                    <button class="action-icon-btn btn-renew" data-ph="${placeholder}" title="Renew Expiration">↻</button>
+                </div>
             `;
 
             const cb = row.querySelector('.vault-check');
@@ -508,9 +589,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 updateVaultBulkUI();
             });
 
+            const renewBtn = row.querySelector('.btn-renew');
+            if (renewBtn) {
+                renewBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await StorageManager.renewMapping(placeholder);
+                    renderVaultView();
+                });
+            }
+
             fragment.appendChild(row);
         });
-        
+
         vaultListContainer.appendChild(fragment);
     }
 
@@ -545,24 +635,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    btnExportVault.addEventListener('click', () => StorageManager.exportVault());
-    btnImportVault.addEventListener('click', () => fileImportVault.click());
-    fileImportVault.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async (ev) => {
-            const res = await StorageManager.importData(ev.target.result);
-            if (res === "vault") {
-                alert('Vault imported successfully!'); 
-                renderVaultView();
-            } else alert('Import failed.');
-        };
-        reader.readAsText(file);
-    });
+    document.getElementById('btnExportConfig').addEventListener('click', () => StorageManager.exportConfig());
+    document.getElementById('btnExportDictionary').addEventListener('click', () => StorageManager.exportDictionary());
+    document.getElementById('btnExportVault').addEventListener('click', () => StorageManager.exportVault());
 
-    // settings import/export
-    document.getElementById('btnExportSettings').addEventListener('click', () => StorageManager.exportData());
     const fileImportSettings = document.getElementById('fileImportSettings');
     document.getElementById('btnImportSettings').addEventListener('click', () => fileImportSettings.click());
     fileImportSettings.addEventListener('change', (e) => {
@@ -571,13 +647,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         const reader = new FileReader();
         reader.onload = async (ev) => {
             const res = await StorageManager.importData(ev.target.result);
-            if (res === "settings") {
-                alert('Settings imported! Reloading...'); location.reload();
-            } else alert('Import failed.');
+            if (res === "vault") {
+                alert('Vault imported successfully!');
+                renderVaultView();
+            } else if (res === "dictionary") {
+                alert('Dictionary imported and merged successfully!');
+                renderDictionary();
+            } else if (res === "configuration" || res === "settings") {
+                alert('Configuration imported! Reloading...');
+                location.reload();
+            } else {
+                alert('Import failed. Invalid file format.');
+            }
+            fileImportSettings.value = "";
         };
         reader.readAsText(file);
     });
-
     const updateBtn = document.getElementById('btnUpdateCheck');
     const updateStatus = document.getElementById('updateStatus');
     const GITHUB_REPO = "Karaatin/AIgis";
@@ -603,7 +688,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const currentVer = chrome.runtime.getManifest().version;
 
                 const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
-                
+
                 if (!response.ok) {
                     if (response.status === 404) throw new Error("No releases found.");
                     if (response.status === 403) throw new Error("API rate limit. Try later.");
@@ -611,7 +696,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 const data = await response.json();
-                
+
                 const remoteVer = data.tag_name.replace(/^v/, '');
 
                 if (isNewerVersion(currentVer, remoteVer)) {

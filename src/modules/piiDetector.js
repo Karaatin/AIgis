@@ -27,7 +27,7 @@ export class PiiDetector {
         this.initialized = true;
     }
 
-    // order of masks matters!!! (from specific to general)
+    // order of masks matters!!!
     initMasks() {
         this.masks = [];
 
@@ -35,9 +35,9 @@ export class PiiDetector {
         if (this.modules.iban) this.masks.push(new Masks.IBANMask());
         if (this.modules.phone) this.masks.push(new Masks.PhoneMask());
         if (this.modules.address) this.masks.push(new Masks.AddressMask());
+        if (this.modules.path) this.masks.push(new Masks.PathMask());
         if (this.modules.ip) this.masks.push(new Masks.IPMask());
         if (this.modules.url) this.masks.push(new Masks.URLMask());
-        if (this.modules.path) this.masks.push(new Masks.PathMask());
         if (this.modules.custom && this.customWords.length > 0) {
             this.masks.push(new Masks.CustomMask(this.customWords));
         }
@@ -63,13 +63,16 @@ export class PiiDetector {
         const uuidMap = {};
         const generateUUID = () => crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Math.random().toString(36).substring(2, 15);
 
+        const vault = await StorageManager.getVault();
+        let vaultModified = false;
+
         // pipe: text is sanitized by all active masks
         for (const mask of this.masks) {
 
             // find matches
             const matches = Array.from(mask.find(currentText, this.mode));
 
-            // Unique Set for database operations
+            // unique Set for database operations
             const uniqueMatches = [...new Set(matches.map(m => m[0]))];
 
             for (const original of uniqueMatches) {
@@ -86,13 +89,19 @@ export class PiiDetector {
 
                 if (occurrenceCount === 0) continue;
 
-                // check vault and get or create placeholder
-                let placeholder = await StorageManager.findPlaceholder(original);
+                let placeholder = vault.reverseIndex[original];
 
                 if (!placeholder) {
-                    const index = await StorageManager.getNextIndex(mask.prefix);
-                    placeholder = `[${mask.prefix}_${index}]`;
-                    await StorageManager.addMapping(placeholder, original, mask.prefix);
+                    const currentMax = vault.counters[mask.prefix] || 0;
+                    const nextIndex = currentMax + 1;
+                    vault.counters[mask.prefix] = nextIndex;
+
+                    placeholder = `[${mask.prefix}_${nextIndex}]`;
+
+                    // add mapping locally
+                    vault.mappings[placeholder] = original;
+                    vault.reverseIndex[original] = placeholder;
+                    vaultModified = true;
                 }
 
                 // temporary UUID to prevent later regex passes from corrupting the placeholder
@@ -114,6 +123,10 @@ export class PiiDetector {
         // final pass: UUIDs -> real placeholders
         for (const [uuid, placeholder] of Object.entries(uuidMap)) {
             currentText = currentText.replace(new RegExp(uuid, 'g'), placeholder);
+        }
+
+        if (vaultModified) {
+            await StorageManager.saveVault(vault);
         }
 
         return {

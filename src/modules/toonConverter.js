@@ -58,8 +58,13 @@ export const ToonConverter = {
 
     decodeRaw(rawString) {
         try {
-            const clean = rawString.trim().replace(/```/g, '');
+            const clean = rawString.trim().replace(/```/g, '').trim();
+            if (!clean) return null;
             const jsonObj = decode(clean);
+            
+            if (typeof jsonObj !== 'object' || jsonObj === null) return null;
+            if (Object.keys(jsonObj).length === 0 && clean !== '_') return null;
+            
             return JSON.stringify(jsonObj, null, 2);
         } catch (e) {
             return null;

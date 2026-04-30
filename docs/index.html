@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIgis - Secure & Optimize Your AI Interactions</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo-wrap">
+                <img src="assets/icon.svg" alt="AIgis Logo" width="40" height="40" style="fill: white;">
+                AIgis
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#supported">Platforms</a>
+                <a href="#showcase">Showcase</a>
+                <a href="https://github.com/Karaatin/AIgis/issues" target="_blank">Support</a>
+                <a href="https://github.com/Karaatin/AIgis/releases" target="_blank">Releases</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero container">
+        <h1>Secure & Optimize Your<br>AI Interactions</h1>
+        <p>A browser extension that automatically masks Personally Identifiable Information (PII) and
+            optimizes tokens before your prompts ever leave your device.</p>
+        <p>AIgis acts as <strong>Client-Side Privacy Firewall</strong> for LLMs in scenarios where privacy is a
+            concern (“Shadow AI”), particularly when individuals use third-party platforms to interact with LLMs.</p>
+        <div class="hero-buttons">
+            <a href="#" class="btn btn-primary">Coming soon to Chrome Web Store</a>
+            <a href="https://github.com/Karaatin/AIgis" target="_blank" class="btn btn-outline">View on GitHub</a>
+        </div>
+    </section>
+
+    <section id="features" class="bento-section container">
+        <h2>Everything you need for Enterprise-Grade AI</h2>
+        <div class="bento-grid">
+
+            <div class="panel bento-large">
+                <div class="panel-header">
+                    <div class="icon-badge">🛡️</div>
+                    <h3>Zero-Trust Local Masking</h3>
+                </div>
+                <p>AIgis operates completely locally. It scans your prompt for Emails, IBANs, Phone Numbers, Addresses,
+                    IP Addresses, and Paths. All sensitive data is replaced with unique, traceable placeholders (e.g.
+                    <code>[EMAIL_1]</code>) before the prompt is sent to the LLM-platform. You choose which data to
+                    mask and which to let through.
+                </p>
+                <div
+                    style="margin-top: auto; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px; font-family: monospace; color: var(--success);">
+                    Original: Contact me at foo@bar.com<br>
+                    Sent: Contact me at [EMAIL_1]
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="icon-badge">⚡</div>
+                    <h3>Seamless Restoration</h3>
+                </div>
+                <p>When the AI generates a response using your placeholders, AIgis automatically injects your real data
+                    back into the DOM seamlessly. Only you can see your sensitive data, without the AI ever knowing what
+                    it was.</p>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="icon-badge">📚</div>
+                    <h3>Custom Masks</h3>
+                </div>
+                <p>Block extremely specific proprietary terms. Add code-names like "Project Apollo" to your dictionary,
+                    and AIgis will mask them across all supported platforms instantaneously.</p>
+            </div>
+
+            <div class="panel bento-large">
+                <div class="panel-header">
+                    <div class="icon-badge">🎯</div>
+                    <h3>TOON Optimization</h3>
+                </div>
+                <p>
+                    <a href="https://toonformat.dev" target="_blank"
+                        style="color: var(--accent); text-decoration: none;">Token
+                        Optimized Object
+                        Notation (TOON)</a>
+                    compresses heavy JSON and code objects natively in your clipboard before you paste them into LLMs.
+                    Relying on the information provided in the TOON documentation, it reaches 74% accuracy (vs JSON's
+                    70%) while using ~40% fewer tokens in mixed-structure
+                    benchmarks across 4 models.
+                </p>
+            </div>
+
+            <div class="panel bento-large">
+                <div class="panel-header">
+                    <div class="icon-badge">🔒</div>
+                    <h3>100% Offline Core & Zero-Trust Architecture</h3>
+                </div>
+                <p>
+                    Privacy isn't just a feature; it's our architecture. AIgis operates entirely inside your browser's
+                    local sandbox, ensuring your sensitive data physically cannot be intercepted. By processing all
+                    redaction logic locally, we eliminate the need for cloud APIs or third-party processing.
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: auto; align-items: start; text-align: center;">
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">
+                        <strong style="color: var(--success);">✓ No Telemetry</strong><br>
+                        Your prompts and data are never logged or tracked.
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">
+                        <strong style="color: var(--success);">✓ Local compute</strong><br>
+                        Masking logic runs on your hardware, not our servers.
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">
+                        <strong style="color: var(--success);">✓ Auto-Pruning</strong><br>
+                        Vault data expires locally, reducing forensic risk.
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="icon-badge">🔄</div>
+                    <h3>Import/Export Hub</h3>
+                </div>
+                <p>Sync your custom dictionaries with exports of your overall AIgis-configuration in JSON. Easily
+                    distribute organizational code-words and redaction lists to your entire team with a single click.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="supported" class="supported-section container">
+        <h2 style="margin-bottom: 2rem;">Seamless Native Integration</h2>
+        <div
+            style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--surface-border); border-radius: 16px; padding: 2rem; text-align: center;">
+            <p style="margin-bottom: 1.5rem; color: var(--text-muted);">AIgis natively intercepts and protects data on
+                the following platforms:</p>
+            <div id="platformList" style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+                <span style="color: var(--text-muted);">Loading supported platforms from GitHub...</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="showcase" class="showcase-section container">
+        <h2>Built for Speed & Transparency</h2>
+
+        <div class="showcase-grid">
+            <div>
+                <h3>Quick-Access Popup</h3>
+                <p>Manage your core masking settings instantly from the extension popup. See what modules are active,
+                    check real-time protection status, and toggle features without breaking your workflow.</p>
+            </div>
+            <div class="showcase-img"
+                style="display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none; aspect-ratio: auto; padding: 0;">
+                <img src="assets/qap-dashboard.png" alt="Quick-Access Popup Dashboard"
+                    style="max-width: 250px; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--surface-border);">
+            </div>
+        </div>
+
+        <div class="showcase-grid">
+            <div class="showcase-img"
+                style="order: -1; padding: 0; overflow: hidden; background: transparent; border: none;">
+                <div class="image-slider" style="--position: 50%;">
+                    <div class="image-after">
+                        <img src="assets/peek-unlocked.png" alt="Unlocked Badges" />
+                    </div>
+                    <div class="image-before">
+                        <img src="assets/peek-locked.png" alt="Locked Badges" />
+                    </div>
+                    <div class="slider-handle"></div>
+                    <input type="range" min="0" max="100" value="50"
+                        oninput="this.parentNode.style.setProperty('--position', this.value + '%'); this.parentNode.style.setProperty('--position-value', this.value)">
+                </div>
+            </div>
+            <div>
+                <h3>Secure Badges</h3>
+                <p>Always know what is being masked. The un-intrusive badges on supported AI-websites gives you a live
+                    overview of exactly what data is being masked/shielded on the current chat. You can toggle on
+                    <strong>Peek-Mode</strong> to view the original text, either permanently or temporarily.
+                </p>
+            </div>
+        </div>
+
+        <div class="showcase-grid">
+            <div>
+                <h3>Global Control Dashboard</h3>
+                <p>Control exactly which modules are active and switch between <strong>strict</strong> or
+                    <strong>developer</strong> modes. Disable specific PII masks if needed, or import and export Custom
+                    Dictionary libraries with your entire team via JSON synchronization.
+                </p>
+                <ul
+                    style="list-style: none; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; color: var(--text-muted);">
+                    <li>✓ Deep context-aware site integration</li>
+                    <li>✓ Secure Active Vault data handling</li>
+                    <li>✓ Exportable configuration matrices</li>
+                </ul>
+            </div>
+            <div class="showcase-img" style="padding: 0; overflow: hidden; border: none; background: transparent;">
+                <img src="assets/dashboard.png" alt="Dashboard"
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px; border: 1px solid var(--surface-border);">
+            </div>
+        </div>
+
+        <div class="showcase-grid">
+            <div class="showcase-img"
+                style="order: -1; padding: 0; overflow: hidden; border: none; background: transparent;">
+                <img src="assets/statistics-dashboard.png" alt="Statistics Dashboard"
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px; border: 1px solid var(--surface-border);">
+            </div>
+            <div>
+                <h3>Protection Statistics</h3>
+                <p>Track exactly how many tokens you've saved and monitor how many sensitive PII elements have been
+                    intercepted in your chats over time. Your data stays completely local, but your privacy impact is
+                    visualized beautifully.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="coming-soon container">
+        <div class="panel coming-soon-panel">
+            <h2 style="margin-bottom: 0.5rem;">
+                Coming Soon: <span class="animated-gradient">AIgis-Framework</span>
+            </h2>
+            <p>We are abstracting the core logic engine of AIgis into a high-performance Rust library, compiled to
+                WebAssembly.
+            </p>
+            <p>Soon, you can integrate the AIgis data protection pipeline directly into your own applications. Through
+                <a href="https://extism.org" target="_blank"
+                    style="color: var(--accent); text-decoration: none;">Extism</a>,
+                we will provide bindings for a wide variety of programming languages.
+            </p>
+            <a href="https://github.com/Karaatin/AIgis" target="_blank" class="btn btn-outline"
+                style="margin-top: 1rem;">Star the Repo for Updates</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-col footer-brand">
+                <a href="#" class="logo-wrap" style="color: white; font-size: 1.5rem;">
+                    <img src="assets/icon.svg" alt="AIgis Logo" width="32" height="32" style="fill: white;">
+                    AIgis
+                </a>
+                <p>A client-side browser extension that automatically masks Personally Identifiable Information (PII)
+                    before your prompts ever leave your device.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#supported">Supported Platforms</a></li>
+                    <li><a href="#showcase">Showcase</a></li>
+                    <li><a href="https://github.com/Karaatin/AIgis/releases" target="_blank">Releases</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/Karaatin/AIgis" target="_blank">GitHub Repository</a></li>
+                    <li><a href="https://github.com/Karaatin/AIgis/issues" target="_blank">Report an Issue</a></li>
+                    <li><a href="https://toonformat.dev" target="_blank">TOON Format</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="https://github.com/Karaatin/AIgis/blob/main/PRIVACY.md" target="_blank">Privacy
+                            Policy</a></li>
+                    <li><a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE" target="_blank">License</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container">
+            <div class="footer-bottom">
+                <div style="margin-bottom: 1rem;">
+                    &copy; 2025-2026 AIgis-Extension. Built by <a href="https://github.com/Karaatin" target="_blank"
+                        style="color: var(--accent); text-decoration: none;">github@Karaatin</a>.
+                </div>
+                <p style="font-size: 0.75rem; opacity: 0.5; max-width: 800px; margin: 0 auto; line-height: 1.4;">
+                    <strong>Disclaimer:</strong> AIgis uses pattern matching to detect and mask sensitive information.
+                    No detection system is 100% flawless. Edge cases, obfuscated text, or malformed data may bypass the
+                    engine. AIgis is provided "as is" and its developers are not liable for any data leaks resulting
+                    from the use or failure of this software. Always review your prompts before submitting.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        async function fetchSupportedHosts() {
+            const listDiv = document.getElementById('platformList');
+            try {
+                // fetch manifest directly from main branch
+                const res = await fetch('https://raw.githubusercontent.com/Karaatin/AIgis/main/public/manifest.json');
+                const manifest = await res.json();
+
+                const matches = manifest.content_scripts[0].matches;
+
+                const hosts = matches.map(url => {
+                    const displayUrl = url.replace('https://', '').replace('http://', '').replace('/*', '').replace('www.', '');
+                    const linkUrl = url.replace('/*', '');
+                    return { display: displayUrl, url: linkUrl };
+                });
+
+                listDiv.innerHTML = hosts.map(h => `
+                    <a href="${h.url}" target="_blank" class="platform-pill">
+                        ${h.display}
+                    </a>
+                `).join('');
+
+            } catch (err) {
+                console.error("Failed to fetch hosts:", err);
+                listDiv.innerHTML = `<span style="color: var(--danger);">Failed to dynamically load supported platforms.</span>`;
+            }
+        }
+
+        fetchSupportedHosts();
+    </script>
+</body>
+
+</html>

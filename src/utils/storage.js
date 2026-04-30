@@ -9,7 +9,8 @@ export const StorageManager = {
             enabled: true,
             debugMode: false,
             usageProfile: 'strict',
-            peekMode: false
+            peekMode: false,
+            vaultPruneDays: 30
         },
         modules: {
             email: true, 
@@ -132,11 +133,31 @@ export const StorageManager = {
             if (typeof chrome === 'undefined' || !chrome.storage) return resolve(this.defaults.vault);
             chrome.storage.local.get(['vault'], (result) => {
                 const v = result.vault || {};
-                resolve({
-                    mappings: v.mappings || {},
+                const mappings = v.mappings || {};
+                let needsSave = false;
+
+                // Lazy migration to expiration object format
+                for (const key in mappings) {
+                    if (typeof mappings[key] === 'string') {
+                        mappings[key] = {
+                            val: mappings[key],
+                            expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000)
+                        };
+                        needsSave = true;
+                    }
+                }
+
+                const loadedVault = {
+                    mappings: mappings,
                     reverseIndex: v.reverseIndex || {},
                     counters: v.counters || {}
-                });
+                };
+
+                if (needsSave) {
+                    chrome.storage.local.set({ vault: loadedVault });
+                }
+
+                resolve(loadedVault);
             });
         });
     },
@@ -152,8 +173,9 @@ export const StorageManager = {
         const vault = await this.getVault();
         
         placeholdersArray.forEach(ph => {
-            const original = vault.mappings[ph];
-            if (original) {
+            const entry = vault.mappings[ph];
+            if (entry) {
+                const original = entry.val || entry; // fallback for pre-migration format if ever missed
                 delete vault.reverseIndex[original];
             }
             delete vault.mappings[ph];
@@ -173,7 +195,13 @@ export const StorageManager = {
 
     async addMapping(placeholder, originalValue, type) {
         const vault = await this.getVault();
-        vault.mappings[placeholder] = originalValue;
+        const settingsData = await this.getSettings();
+        const pruneDays = settingsData.settings.vaultPruneDays || 30;
+
+        vault.mappings[placeholder] = {
+            val: originalValue,
+            expiresAt: Date.now() + (pruneDays * 24 * 60 * 60 * 1000)
+        };
         vault.reverseIndex[originalValue] = placeholder;
         
         const match = placeholder.match(/_(\d+)\]$/);
@@ -187,6 +215,36 @@ export const StorageManager = {
         await this.saveVault(vault);
     },
 
+    async renewMapping(placeholder) {
+        const vault = await this.getVault();
+        if (vault.mappings[placeholder]) {
+            const settingsData = await this.getSettings();
+            const pruneDays = settingsData.settings.vaultPruneDays || 30;
+            vault.mappings[placeholder].expiresAt = Date.now() + (pruneDays * 24 * 60 * 60 * 1000);
+            await this.saveVault(vault);
+        }
+    },
+
+    async pruneVault() {
+        const vault = await this.getVault();
+        const now = Date.now();
+        let changed = false;
+
+        for (const [placeholder, data] of Object.entries(vault.mappings)) {
+            if (data.expiresAt && now > data.expiresAt) {
+                if (vault.reverseIndex[data.val] === placeholder) {
+                    delete vault.reverseIndex[data.val];
+                }
+                delete vault.mappings[placeholder];
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            await this.saveVault(vault);
+        }
+    },
+
     async getNextIndex(type) {
         const vault = await this.getVault();
         const current = vault.counters[type] || 0;
@@ -194,15 +252,28 @@ export const StorageManager = {
     },
     
     // import/export
-    async exportData() {
+    async exportConfig() {
         const settings = await this.getSettings();
-        const stats = await this.getStats();
         const exportObj = {
-            meta: { app: "AIgis", type: "settings", version: chrome.runtime.getManifest().version, date: new Date().toISOString() },
-            config: settings,
-            stats: stats
+            meta: { app: "AIgis", type: "configuration", version: chrome.runtime.getManifest().version, date: new Date().toISOString() },
+            config: {
+                enabled: settings.settings.enabled,
+                usageProfile: settings.settings.usageProfile,
+                peekMode: settings.settings.peekMode,
+                debugMode: settings.settings.debugMode,
+                modules: settings.modules
+            }
         };
-        this._downloadJson(exportObj, `AIgis-Settings-${new Date().toISOString().slice(0,10)}.json`);
+        this._downloadJson(exportObj, `AIgis-Configuration-${new Date().toISOString().slice(0,10)}.json`);
+    },
+
+    async exportDictionary() {
+        const settings = await this.getSettings();
+        const exportObj = {
+            meta: { app: "AIgis", type: "dictionary", version: chrome.runtime.getManifest().version, date: new Date().toISOString() },
+            customWords: settings.customWords || []
+        };
+        this._downloadJson(exportObj, `AIgis-Dictionary-${new Date().toISOString().slice(0,10)}.json`);
     },
 
     async exportVault() {
@@ -233,7 +304,23 @@ export const StorageManager = {
             const data = JSON.parse(jsonString);
             if (!data.meta || data.meta.app !== "AIgis") throw new Error("Invalid file");
 
-            if (data.meta.type === "settings") {
+            if (data.meta.type === "configuration") {
+                const settings = await this.getSettings();
+                if (data.config) {
+                    settings.settings = { ...settings.settings, ...data.config };
+                    if (data.config.modules) settings.modules = { ...settings.modules, ...data.config.modules };
+                    await this.saveSettings(settings);
+                }
+                return "configuration";
+            } else if (data.meta.type === "dictionary") {
+                const settings = await this.getSettings();
+                if (data.customWords && Array.isArray(data.customWords)) {
+                    const mergedSet = new Set([...settings.customWords, ...data.customWords]);
+                    settings.customWords = Array.from(mergedSet);
+                    await this.saveSettings(settings);
+                }
+                return "dictionary";
+            } else if (data.meta.type === "settings") {
                 if (data.config) await this.saveSettings(data.config);
                 return "settings";
             } else if (data.meta.type === "vault") {
@@ -241,8 +328,18 @@ export const StorageManager = {
                     const vault = await this.getVault();
                     vault.mappings = { ...vault.mappings, ...data.mappings };
                     
-                    for (const [ph, orig] of Object.entries(data.mappings)) {
-                        vault.reverseIndex[orig] = ph;
+                    for (const [ph, entry] of Object.entries(data.mappings)) {
+                        let original = entry;
+                        let expiresAt = Date.now() + (30 * 24 * 60 * 60 * 1000);
+                        
+                        if (typeof entry === 'object' && entry.val) {
+                            original = entry.val;
+                            expiresAt = entry.expiresAt || expiresAt;
+                        }
+                        
+                        vault.mappings[ph] = { val: original, expiresAt };
+                        vault.reverseIndex[original] = ph;
+                        
                         const typeMatch = ph.match(/\[([A-Z_]+)_(\d+)\]/);
                         if (typeMatch) {
                             const type = typeMatch[1];
