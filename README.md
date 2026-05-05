@@ -3,7 +3,7 @@
     <img src="public/icons/icon.svg" alt="AIgis Icon" width="140" />
   </a>
   
-  <h1><strong>AI</strong>gis</h1>
+  <h1><a href="https://karaatin.github.io/AIgis/"><strong>AI</strong>gis</a></h1>
 
   <p>
     <strong>Secure your AI interactions.</strong><br>
