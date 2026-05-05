@@ -17,7 +17,7 @@
     <nav>
         <div class="nav-container">
             <a href="#" class="logo-wrap">
-                <img src="assets/icon.svg" alt="AIgis Logo" width="40" height="40" style="fill: white;">
+                <img src="assets/icon.svg" alt="AIgis Logo" width="40" height="40" class="fill-white">
                 AIgis
             </a>
             <div class="nav-links">
@@ -51,13 +51,13 @@
                     <div class="icon-badge">🛡️</div>
                     <h3>Zero-Trust Local Masking</h3>
                 </div>
-                <p>AIgis operates completely locally. It scans your prompt for Emails, IBANs, Phone Numbers, Addresses,
+                <p class="mb-md">AIgis operates completely locally. It scans your prompt for Emails, IBANs, Phone
+                    Numbers, Addresses,
                     IP Addresses, and Paths. All sensitive data is replaced with unique, traceable placeholders (e.g.
                     <code>[EMAIL_1]</code>) before the prompt is sent to the LLM-platform. You choose which data to
                     mask and which to let through.
                 </p>
-                <div
-                    style="margin-top: auto; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px; font-family: monospace; color: var(--success);">
+                <div class="code-snippet">
                     Original: Contact me at foo@bar.com<br>
                     Sent: Contact me at [EMAIL_1]
                 </div>
@@ -88,8 +88,7 @@
                     <h3>TOON Optimization</h3>
                 </div>
                 <p>
-                    <a href="https://toonformat.dev" target="_blank"
-                        style="color: var(--accent); text-decoration: none;">Token
+                    <a href="https://toonformat.dev" target="_blank" class="text-accent-link">Token
                         Optimized Object
                         Notation (TOON)</a>
                     compresses heavy JSON and code objects natively in your clipboard before you paste them into LLMs.
@@ -109,17 +108,17 @@
                     local sandbox, ensuring your sensitive data physically cannot be intercepted. By processing all
                     redaction logic locally, we eliminate the need for cloud APIs or third-party processing.
                 </p>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: auto; align-items: start; text-align: center;">
-                    <div style="font-size: 0.9rem; color: var(--text-muted);">
-                        <strong style="color: var(--success);">✓ No Telemetry</strong><br>
+                <div class="zero-trust-grid">
+                    <div class="feature-item">
+                        <strong>✓ No Telemetry</strong><br>
                         Your prompts and data are never logged or tracked.
                     </div>
-                    <div style="font-size: 0.9rem; color: var(--text-muted);">
-                        <strong style="color: var(--success);">✓ Local compute</strong><br>
+                    <div class="feature-item">
+                        <strong>✓ Local compute</strong><br>
                         Masking logic runs on your hardware, not our servers.
                     </div>
-                    <div style="font-size: 0.9rem; color: var(--text-muted);">
-                        <strong style="color: var(--success);">✓ Auto-Pruning</strong><br>
+                    <div class="feature-item">
+                        <strong>✓ Auto-Pruning</strong><br>
                         Vault data expires locally, reducing forensic risk.
                     </div>
                 </div>
@@ -139,13 +138,12 @@
     </section>
 
     <section id="supported" class="supported-section container">
-        <h2 style="margin-bottom: 2rem;">Seamless Native Integration</h2>
-        <div
-            style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--surface-border); border-radius: 16px; padding: 2rem; text-align: center;">
-            <p style="margin-bottom: 1.5rem; color: var(--text-muted);">AIgis natively intercepts and protects data on
+        <h2 class="mb-2xl">Seamless Native Integration</h2>
+        <div class="supported-box">
+            <p class="text-muted mb-lg">AIgis natively intercepts and protects data on
                 the following platforms:</p>
-            <div id="platformList" style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
-                <span style="color: var(--text-muted);">Loading supported platforms from GitHub...</span>
+            <div id="platformList" class="platform-list">
+                <span class="text-muted">Loading supported platforms from GitHub...</span>
             </div>
         </div>
     </section>
@@ -159,17 +157,14 @@
                 <p>Manage your core masking settings instantly from the extension popup. See what modules are active,
                     check real-time protection status, and toggle features without breaking your workflow.</p>
             </div>
-            <div class="showcase-img"
-                style="display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none; aspect-ratio: auto; padding: 0;">
-                <img src="assets/qap-dashboard.png" alt="Quick-Access Popup Dashboard"
-                    style="max-width: 250px; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--surface-border);">
+            <div class="showcase-img showcase-img-transparent">
+                <img src="assets/qap-dashboard.png" alt="Quick-Access Popup Dashboard" class="showcase-img-popup">
             </div>
         </div>
 
-        <div class="showcase-grid">
-            <div class="showcase-img"
-                style="order: -1; padding: 0; overflow: hidden; background: transparent; border: none;">
-                <div class="image-slider" style="--position: 50%;">
+        <div class="showcase-grid showcase-grid-reverse">
+            <div class="showcase-img showcase-img-slider">
+                <div class="image-slider">
                     <div class="image-after">
                         <img src="assets/peek-unlocked.png" alt="Unlocked Badges" />
                     </div>
@@ -197,24 +192,20 @@
                     <strong>developer</strong> modes. Disable specific PII masks if needed, or import and export Custom
                     Dictionary libraries with your entire team via JSON synchronization.
                 </p>
-                <ul
-                    style="list-style: none; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; color: var(--text-muted);">
+                <ul class="feature-list">
                     <li>✓ Deep context-aware site integration</li>
                     <li>✓ Secure Active Vault data handling</li>
                     <li>✓ Exportable configuration matrices</li>
                 </ul>
             </div>
-            <div class="showcase-img" style="padding: 0; overflow: hidden; border: none; background: transparent;">
-                <img src="assets/dashboard.png" alt="Dashboard"
-                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px; border: 1px solid var(--surface-border);">
+            <div class="showcase-img showcase-img-slider">
+                <img src="assets/dashboard.png" alt="Dashboard" class="showcase-img-cover">
             </div>
         </div>
 
         <div class="showcase-grid">
-            <div class="showcase-img"
-                style="order: -1; padding: 0; overflow: hidden; border: none; background: transparent;">
-                <img src="assets/statistics-dashboard.png" alt="Statistics Dashboard"
-                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px; border: 1px solid var(--surface-border);">
+            <div class="showcase-img showcase-img-slider">
+                <img src="assets/statistics-dashboard.png" alt="Statistics Dashboard" class="showcase-img-cover">
             </div>
             <div>
                 <h3>Protection Statistics</h3>
@@ -227,27 +218,26 @@
 
     <section class="coming-soon container">
         <div class="panel coming-soon-panel">
-            <h2 style="margin-bottom: 0.5rem;">
+            <h2 class="mb-sm">
                 Coming Soon: <span class="animated-gradient">AIgis-Framework</span>
             </h2>
             <p>We are abstracting the core logic engine of AIgis into a high-performance Rust library, compiled to
                 WebAssembly.
             </p>
             <p>Soon, you can integrate the AIgis data protection pipeline directly into your own applications. Through
-                <a href="https://extism.org" target="_blank"
-                    style="color: var(--accent); text-decoration: none;">Extism</a>,
+                <a href="https://extism.org" target="_blank" class="text-accent-link">Extism</a>,
                 we will provide bindings for a wide variety of programming languages.
             </p>
-            <a href="https://github.com/Karaatin/AIgis" target="_blank" class="btn btn-outline"
-                style="margin-top: 1rem;">Star the Repo for Updates</a>
+            <a href="https://github.com/Karaatin/AIgis" target="_blank" class="btn btn-outline mt-lg">Star the Repo for
+                Updates</a>
         </div>
     </section>
 
     <footer>
         <div class="container footer-grid">
             <div class="footer-col footer-brand">
-                <a href="#" class="logo-wrap" style="color: white; font-size: 1.5rem;">
-                    <img src="assets/icon.svg" alt="AIgis Logo" width="32" height="32" style="fill: white;">
+                <a href="#" class="logo-wrap text-white text-xl">
+                    <img src="assets/icon.svg" alt="AIgis Logo" width="32" height="32" class="fill-white">
                     AIgis
                 </a>
                 <p>A client-side browser extension that automatically masks Personally Identifiable Information (PII)
@@ -281,11 +271,11 @@
         </div>
         <div class="container">
             <div class="footer-bottom">
-                <div style="margin-bottom: 1rem;">
+                <div class="mb-md">
                     &copy; 2025-2026 AIgis-Extension. Built by <a href="https://github.com/Karaatin" target="_blank"
-                        style="color: var(--accent); text-decoration: none;">github@Karaatin</a>.
+                        class="text-accent-link">github@Karaatin</a>.
                 </div>
-                <p style="font-size: 0.75rem; opacity: 0.5; max-width: 800px; margin: 0 auto; line-height: 1.4;">
+                <p class="legal-text">
                     <strong>Disclaimer:</strong> AIgis uses pattern matching to detect and mask sensitive information.
                     No detection system is 100% flawless. Edge cases, obfuscated text, or malformed data may bypass the
                     engine. AIgis is provided "as is" and its developers are not liable for any data leaks resulting
@@ -319,7 +309,7 @@
 
             } catch (err) {
                 console.error("Failed to fetch hosts:", err);
-                listDiv.innerHTML = `<span style="color: var(--danger);">Failed to dynamically load supported platforms.</span>`;
+                listDiv.innerHTML = `<span class="text-danger">Failed to dynamically load supported platforms.</span>`;
             }
         }
 
