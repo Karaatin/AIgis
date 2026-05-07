@@ -101,30 +101,61 @@ p {
 }
 
 /* Utilities */
-.mb-sm { margin-bottom: 0.5rem; }
-.mb-md { margin-bottom: 1rem; }
-.mb-lg { margin-bottom: 1.5rem; }
-.mb-2xl { margin-bottom: 2rem; }
-.mt-lg { margin-top: 1rem; }
+.mb-sm {
+    margin-bottom: 0.5rem;
+}
 
-.text-muted { color: var(--text-muted); }
-.text-danger { color: var(--danger); }
-.text-white { color: white; }
-.text-xl { font-size: 1.5rem; }
+.mb-md {
+    margin-bottom: 1rem;
+}
+
+.mb-lg {
+    margin-bottom: 1.5rem;
+}
+
+.mb-2xl {
+    margin-bottom: 2rem;
+}
+
+.mt-lg {
+    margin-top: 1rem;
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.text-danger {
+    color: var(--danger);
+}
+
+.text-white {
+    color: white;
+}
+
+.text-xl {
+    font-size: 1.5rem;
+}
+
 .text-accent-link {
     color: var(--accent);
     text-decoration: none;
 }
-.fill-white { fill: white; }
+
+.fill-white {
+    fill: white;
+}
 
 /* Feature Items & Lists */
 .feature-item {
     font-size: 0.9rem;
     color: var(--text-muted);
 }
+
 .feature-item strong {
     color: var(--success);
 }
+
 .feature-list {
     list-style: none;
     margin-top: 1.5rem;
@@ -138,7 +169,7 @@ p {
 .code-snippet {
     margin: auto 0;
     padding: 1rem;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     font-family: monospace;
     color: var(--success);
@@ -152,6 +183,7 @@ p {
     padding: 2rem;
     text-align: center;
 }
+
 .platform-list {
     display: flex;
     flex-wrap: wrap;
@@ -400,7 +432,7 @@ nav {
     width: 100%;
     height: auto;
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     border: 1px solid var(--surface-border);
 }
 
@@ -668,7 +700,7 @@ footer {
     h1 {
         font-size: 2.25rem;
     }
-    
+
     h2 {
         font-size: 2rem;
     }
@@ -695,13 +727,17 @@ footer {
         display: flex;
         flex-direction: column;
     }
-    
+
     .showcase-grid .showcase-img {
         order: 2;
     }
 
     .showcase-grid div:not(.showcase-img) {
         order: 1;
+    }
+
+    .showcase-grid:last-of-type {
+        margin-bottom: 1rem;
     }
 
     .nav-container {
