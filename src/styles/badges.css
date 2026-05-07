@@ -31,7 +31,7 @@
     background-color: #bae6fd;
     border-color: #7dd3fc;
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -48,6 +48,7 @@
     filter: grayscale(0.4);
     transition: filter 0.2s;
 }
+
 .aigis-badge:hover::before {
     filter: grayscale(0);
 }
@@ -57,6 +58,7 @@
     color: #166534;
     border-color: #86efac;
 }
+
 .aigis-badge.revealed::before {
     content: "🔓";
 }
@@ -112,7 +114,8 @@
 
 .aigis-json-content {
     padding: 12px;
-    white-space: pre-wrap; /* JSON Formatierung behalten */
+    white-space: pre-wrap;
+    /* JSON Formatierung behalten */
     color: #334155;
     overflow-x: auto;
 }
@@ -144,6 +147,7 @@
         border-color: #38bdf8;
         color: #38bdf8;
     }
+
     .aigis-copy-btn:hover {
         background: #38bdf8;
         color: #0f172a;
@@ -155,12 +159,13 @@
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%) translateY(20px);
-    background: #1f2937;
-    color: #fff;
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
     padding: 10px 20px;
     border-radius: 8px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: bold;
     z-index: 2147483647;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     opacity: 0;
@@ -174,4 +179,12 @@
 .aigis-toast.show {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+}
+
+@media (prefers-color-scheme: dark) {
+    .aigis-toast {
+        background-color: #0f172a;
+        color: #38bdf8;
+        border-color: #334155;
+    }
 }

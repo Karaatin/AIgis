@@ -14,7 +14,7 @@
     <a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
     <img src="https://img.shields.io/badge/Status-Active_Development-orange.svg" alt="Status">
     <img src="https://img.shields.io/badge/Platform-Chromium-lightgrey.svg" alt="Platform">
-    <img src="https://img.shields.io/badge/Version-v0.4.0-brightgreen.svg" alt="Version">
+    <img src="https://img.shields.io/badge/Version-v1.0.0-brightgreen.svg" alt="Version">
   </p>
 </div>
 
@@ -94,7 +94,16 @@ sequenceDiagram
 
 AIgis works on **all Chromium-based browsers** (Google Chrome, Microsoft Edge, Brave, Opera, Vivaldi, Arc, etc.).
 
-Since it is currently in **active development** and not yet listed on the Web Stores, you can install it manually in less than a minute:
+### Option 1: Chrome Web Store (Recommended)
+
+The easiest and safest way to install AIgis is directly from the official Chrome Web Store. Extensions installed this way receive automatic background updates. 
+*(Note: Due to Google's security review process for privacy extensions, Web Store versions may trail behind the latest GitHub releases by a few days).*
+
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/diekahjhfmlpnelbpedhgedelgobalfb?label=Install%20from%20Chrome%20Web%20Store&color=3b82f6&logo=googlechrome&logoColor=white&style=for-the-badge)](https://chromewebstore.google.com/detail/diekahjhfmlpnelbpedhgedelgobalfb?utm_source=item-share-cb)
+
+### Option 2: Developer Mode (Manual Installation)
+
+If you want to test beta releases or install a specific older version, you can manually sideload the extension:
 
 1.  **Download:** Go to the [Releases Page](../../releases) and download the latest `AIgis-vX.X.X.zip` (found under "Assets").
 2.  **Unzip:** Extract the ZIP file into a folder of your choice.

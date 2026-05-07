@@ -61,6 +61,12 @@ export const ResponseHandler = {
         this.vaultCache = vaultData.mappings || {};
     },
 
+    getOriginalValue(ph) {
+        const entry = this.vaultCache[ph];
+        if (!entry) return null;
+        return typeof entry === 'object' ? entry.val : entry;
+    },
+
     startObserver() {
         if (this.observer) return;
 
@@ -250,7 +256,7 @@ export const ResponseHandler = {
         span.contentEditable = "false";
         span.innerText = placeholder.replace('[', '').replace(']', '');
 
-        const original = this.vaultCache[placeholder];
+        const original = this.getOriginalValue(placeholder);
         if (original) {
             const preview = original.length > 8
                 ? `${original.substring(0, 4)}...${original.substring(original.length - 4)}`
@@ -296,7 +302,7 @@ export const ResponseHandler = {
     },
 
     async copySingle(placeholder) {
-        const val = this.vaultCache[placeholder];
+        const val = this.getOriginalValue(placeholder);
         if (val) {
             navigator.clipboard.writeText(val);
             this.showToast("🔓 Original value copied!");
@@ -310,7 +316,7 @@ export const ResponseHandler = {
         const badges = document.querySelectorAll('.aigis-badge');
         badges.forEach(b => {
             const ph = b.dataset.placeholder;
-            const val = this.vaultCache[ph];
+            const val = this.getOriginalValue(ph);
             if (!val) return;
 
             if (shouldPeek) {
@@ -321,7 +327,7 @@ export const ResponseHandler = {
                 b.classList.add('revealed');
             } else {
                 if (b.dataset.uiText) {
-                    if (b.matches(':hover')) return; // Native CSS check to preserve the hover state
+                    if (b.matches(':hover')) return;
 
                     b.innerText = b.dataset.uiText;
                     b.classList.remove('revealed');
@@ -352,7 +358,7 @@ export const ResponseHandler = {
 
         container.querySelectorAll('.aigis-badge').forEach(b => {
             const ph = b.dataset.placeholder;
-            const original = this.vaultCache[ph] || ph;
+            const original = this.getOriginalValue(ph) || ph;
             b.replaceWith(document.createTextNode(original));
         });
 
