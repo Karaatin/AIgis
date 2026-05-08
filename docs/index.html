@@ -109,9 +109,7 @@
                     <h3>100% Offline Core & Zero-Trust Architecture</h3>
                 </div>
                 <p>
-                    Privacy isn't just a feature; it's our architecture. AIgis operates entirely inside your browser's
-                    local sandbox, ensuring your sensitive data physically cannot be intercepted. By processing all
-                    redaction logic locally, we eliminate the need for cloud APIs or third-party processing.
+                    Privacy isn't just a feature; it's our architecture. AIgis utilizes a strict dual-storage model. Your highly sensitive data and PII Vault mappings are physically air-gapped to your local hard drive (<code>chrome.storage.local</code>), while non-sensitive preferences safely sync across your own personal devices. By processing all redaction logic locally, we eliminate the need for third-party cloud APIs.
                 </p>
                 <div class="zero-trust-grid">
                     <div class="feature-item">
@@ -120,7 +118,7 @@
                     </div>
                     <div class="feature-item">
                         <strong>✓ Local compute</strong><br>
-                        Masking logic runs on your hardware, not our servers.
+                        Masking logic runs on your hardware, not any servers.
                     </div>
                     <div class="feature-item">
                         <strong>✓ Auto-Pruning</strong><br>
@@ -134,8 +132,7 @@
                     <div class="icon-badge">🔄</div>
                     <h3>Import/Export Hub</h3>
                 </div>
-                <p>Sync your custom dictionaries with exports of your overall AIgis-configuration in JSON. Easily
-                    distribute organizational code-words and redaction lists to your entire team with a single click.
+                <p>While your personal preferences automatically sync across your own devices via Chrome's native infrastructure, you can also manually export your AIgis configuration as JSON. Easily distribute organizational code-words and redaction lists to your entire team with a single click!
                 </p>
             </div>
 
@@ -251,7 +248,8 @@
             <div class="footer-col">
                 <h4>Product</h4>
                 <ul>
-                    <li><a href="https://chromewebstore.google.com/detail/diekahjhfmlpnelbpedhgedelgobalfb?utm_source=item-share-cb" target="_blank">Install Extension</a></li>
+                    <li><a href="https://chromewebstore.google.com/detail/diekahjhfmlpnelbpedhgedelgobalfb?utm_source=item-share-cb"
+                            target="_blank">Install Extension</a></li>
                     <li><a href="#features">Features</a></li>
                     <li><a href="#supported">Supported Platforms</a></li>
                     <li><a href="#showcase">Showcase</a></li>

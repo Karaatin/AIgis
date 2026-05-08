@@ -13,11 +13,10 @@ The core function of AIgis is to intercept your text input, mask sensitive infor
 * **Local Processing Only:** All text scanning, masking, and Token Optimization Object Notation (TOON) decoding happens exclusively in your browser's local memory.
 * **No Network Transmission:** The original sensitive data (PII, secrets, keys) that AIgis masks is **never** sent to the LLM (like ChatGPT or Claude) and is **never** sent to us. Only the sanitized, placeholder versions (e.g., `[EMAIL_1]`) leave your computer.
 
-## 3. Local Storage
-AIgis utilizes your browser's native storage APIs (`chrome.storage.local` and `chrome.storage.sync`) solely to:
-1. Save your dashboard configuration preferences (e.g., Active Modules, Sensitivity Profile).
-2. Temporarily store your Custom Dictionary and the "Vault" (the mapping between your real data and the generic placeholders) so that it can successfully unmask the LLM's response when it arrives. To further protect your privacy, Vault data is automatically pruned and permanently deleted from local storage after a user-configurable period (default 30 days) to minimize forensic risk.
-This data never leaves your device.
+## 3. Dual-Storage Architecture
+AIgis utilizes your browser's native storage APIs in a strict, split-architecture model to balance convenience with absolute security:
+* **`chrome.storage.sync` (Preferences):** Used exclusively for non-sensitive configuration data (e.g., Active Modules, Developer Mode settings, and Custom Dictionaries). This data is securely synced across your personal devices via your browser's native Google/Microsoft account infrastructure.
+* **`chrome.storage.local` (Real Data):** Used exclusively for the highly sensitive "Vault" (the mapping between your real data and the generic placeholders, like `foo@bar.com` -> `[EMAIL_1]`). This ensures that your actual private data is strictly air-gapped and quarantined to the physical hard drive of the device it was generated on. It is never synced. To further protect your privacy, Vault data is automatically pruned and permanently deleted from local storage after a user-configurable period (default 30 days) to minimize forensic risk.
 
 ## 4. Permissions Explained
 To function correctly, AIgis requests the following browser permissions:
