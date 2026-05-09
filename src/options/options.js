@@ -344,13 +344,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     dictAddBtn.addEventListener('click', async () => {
         const word = dictInput.value.trim();
         if (word) {
-            if (!settingsData.customWords.includes(word)) {
+            const exists = settingsData.customWords.some(w => w.toLowerCase() === word.toLowerCase());
+            if (!exists) {
                 settingsData.customWords.push(word);
                 await save();
                 renderDictionary();
-                showDictFeedback(`Blocked "${word}"`);
+                showDictFeedback(`Added "${word}" to blocked list`);
             } else {
-                showDictFeedback(`${word} already blocked`);
+                showDictFeedback(`"${word}" already blocked`);
             }
             dictInput.value = '';
         }

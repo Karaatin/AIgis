@@ -450,10 +450,12 @@ input:checked+.mode-card {
   font-size: 0.85rem;
   color: var(--success);
   margin-top: 10px;
+  margin-bottom: 10px;
   text-align: center;
   opacity: 0;
   transition: opacity 0.3s;
   font-weight: 600;
+  line-height: 20px;
 }
 
 .list-wrapper {

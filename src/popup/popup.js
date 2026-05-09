@@ -178,14 +178,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const word = inputWord.value.trim();
         if (word) {
-            const newSet = new Set(settingsData.customWords);
-            if (!newSet.has(word)) {
-                newSet.add(word);
-                settingsData.customWords = [...newSet];
+            const exists = settingsData.customWords.some(w => w.toLowerCase() === word.toLowerCase());
+            if (!exists) {
+                settingsData.customWords.push(word);
                 await StorageManager.saveSettings(settingsData);
-                showFeedback(`Blocked "${word}"`);
+                showFeedback(`Added "${word}" to blocked list`);
             } else {
-                showFeedback(`Exists`);
+                showFeedback(`"${word}" already blocked`);
             }
             inputWord.value = '';
         }

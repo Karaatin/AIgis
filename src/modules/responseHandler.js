@@ -16,7 +16,7 @@ export const ResponseHandler = {
     pendingNodes: new Set(),
 
     init() {
-        document.addEventListener('copy', (e) => this.handleSmartCopy(e));
+        document.addEventListener('copy', (e) => this.handleSmartCopy(e), { capture: true });
 
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Backquote') {
@@ -355,6 +355,7 @@ export const ResponseHandler = {
         if (!hasCustomElements) return;
 
         e.preventDefault();
+        e.stopImmediatePropagation();
 
         container.querySelectorAll('.aigis-badge').forEach(b => {
             const ph = b.dataset.placeholder;
@@ -367,7 +368,16 @@ export const ResponseHandler = {
             b.replaceWith(document.createTextNode(content));
         });
 
+        // temporarily append to DOM to ensure innerText renders newlines correctly
+        container.style.position = 'absolute';
+        container.style.left = '-9999px';
+        container.style.whiteSpace = 'pre-wrap';
+        document.body.appendChild(container);
+
         const cleanText = container.innerText;
+
+        document.body.removeChild(container);
+
         if (e.clipboardData) {
             e.clipboardData.setData('text/plain', cleanText);
             this.showToast("Copied with unmasked/decoded values!");
