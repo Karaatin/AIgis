@@ -1,13 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import EmailMask from '../src/modules/piiMasks/piiMask-Email.js';
-import { samplePrompts } from './testData.js';
-
 describe('PII Mask Logic: Email', () => {
     
     it('should find all valid emails in the sample text', () => {
 
         const mask = new EmailMask();
-        const text = samplePrompts.emailScenario;
+        const text = "Please contact john.smith@corporation.com or support-team+urgent@service.net, or my personal email jane.doe99@gmail.com.";
         
         const matches = Array.from(mask.find(text));
 

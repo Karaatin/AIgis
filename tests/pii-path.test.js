@@ -2,14 +2,14 @@ import { describe, it, expect } from 'vitest';
 import PathMask from '../src/modules/piiMasks/piiMask-Path.js';
 
 describe('PII Mask Logic: File Paths', () => {
-    
+
     const mask = new PathMask();
 
     it('should detect Windows paths', () => {
 
         const text = "Logs are at C:\\Users\\Admin\\secret.log and D:\\Data\\Backup";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(2);
         expect(matches[0][0]).toBe('C:\\Users\\Admin\\secret.log');
         expect(matches[1][0]).toBe('D:\\Data\\Backup');
@@ -20,7 +20,7 @@ describe('PII Mask Logic: File Paths', () => {
 
         const text = "Check Logs\\Error.txt and ..\\Config\\setup.bat";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(2);
         expect(matches[0][0]).toBe('Logs\\Error.txt');
         expect(matches[1][0]).toBe('..\\Config\\setup.bat');
@@ -31,7 +31,7 @@ describe('PII Mask Logic: File Paths', () => {
 
         const text = "Run .\\install.exe please";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(1);
         expect(matches[0][0]).toBe('.\\install.exe');
 
@@ -41,7 +41,7 @@ describe('PII Mask Logic: File Paths', () => {
 
         const text = "Check config at /etc/nginx/nginx.conf or /home/user/.ssh/id_rsa";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(2);
         expect(matches[0][0]).toBe('/etc/nginx/nginx.conf');
         expect(matches[1][0]).toBe('/home/user/.ssh/id_rsa');
@@ -52,7 +52,7 @@ describe('PII Mask Logic: File Paths', () => {
 
         const text = "Run cd var/log/apache2 or check src/modules/utils.js";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(2);
         expect(matches[0][0]).toBe('var/log/apache2');
         expect(matches[1][0]).toBe('src/modules/utils.js');
@@ -63,7 +63,7 @@ describe('PII Mask Logic: File Paths', () => {
 
         const text = "Go to https://google.com/search/results or https://google.com/search or maybe http://site.co/a/b";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(0);
 
     });
@@ -72,9 +72,9 @@ describe('PII Mask Logic: File Paths', () => {
 
         const text = "Date: 10/12/2023 or 2023/01/01";
         const matches = Array.from(mask.find(text));
-        
+
         if (matches.length > 0) {
-             expect(mask.validate(matches[0][0])).toBe(false);
+            expect(mask.validate(matches[0][0])).toBe(false);
         } else {
             expect(matches.length).toBe(0);
         }
@@ -85,8 +85,8 @@ describe('PII Mask Logic: File Paths', () => {
 
         const text = "This is a test and/or an example for km/h.";
         const matches = Array.from(mask.find(text));
-        
-        expect(matches.length).toBe(0); 
+
+        expect(matches.length).toBe(0);
 
     });
 
@@ -94,7 +94,7 @@ describe('PII Mask Logic: File Paths', () => {
 
         const text = "Date: 10/12/2024";
         const matches = Array.from(mask.find(text));
-        
+
         if (matches.length > 0) {
             expect(mask.validate(matches[0][0])).toBe(false);
         } else {
@@ -103,5 +103,26 @@ describe('PII Mask Logic: File Paths', () => {
 
     });
 
+    it('should skip safe developer paths in developer mode', () => {
+
+        const text = "Error in src/modules/utils.js or node_modules/express/index.js";
+        const matches = Array.from(mask.find(text));
+
+        expect(matches.length).toBe(2);
+
+        expect(mask.validate(matches[0][0], 'developer')).toBe(false);
+        expect(mask.validate(matches[1][0], 'developer')).toBe(false);
+
+    });
+
+    it('should MASK safe developer paths in strict mode', () => {
+
+        const text = "Error in src/modules/utils.js";
+        const matches = Array.from(mask.find(text));
+
+        expect(matches.length).toBe(1);
+        expect(mask.validate(matches[0][0], 'strict')).toBe(true);
+
+    });
 
 });

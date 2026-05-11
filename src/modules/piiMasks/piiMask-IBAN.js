@@ -7,7 +7,7 @@ export default class IBANMask extends piiBaseMask {
     }
 
     find(text) {
-        const regex = /\b[A-Z]{2}\d{2}(?:[A-Z0-9\s]*\d|[A-Z0-9]+)\b/gi;
+        const regex = /\b[A-Z]{2}\d{2}(?:[ \-]?[A-Z0-9]{4}){2,7}(?:[ \-]?[A-Z0-9]{1,4})?\b/gi;
         return text.matchAll(regex);
     }
 

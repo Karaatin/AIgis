@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest';
 import IBANMask from '../src/modules/piiMasks/piiMask-IBAN.js';
 
 describe('PII Mask Logic: IBAN', () => {
-    
-    const mask = new IBANMask();
-    const validIBAN = 'DE89370400440532013000'; 
 
-    it('should detect a valid German IBAN (continuous)', () => {
+    const mask = new IBANMask();
+    const validIBAN = 'DE89370400440532013000';
+
+    it('should detect a valid German IBAN', () => {
         const text = `Here is my IBAN: ${validIBAN}`;
         const matches = Array.from(mask.find(text));
         expect(matches).toHaveLength(1);
@@ -23,7 +23,7 @@ describe('PII Mask Logic: IBAN', () => {
 
     });
 
-    it('should detect irregularly spaced IBANs (The "Greedy" Check)', () => {
+    it('should detect irregularly spaced IBANs', () => {
 
         const weirdSpacing = 'DE893704 0044 0532 013000';
         const matches = Array.from(mask.find(weirdSpacing));
@@ -32,13 +32,24 @@ describe('PII Mask Logic: IBAN', () => {
 
     });
 
-    it('should NOT capture text following the IBAN (The "Trailing Word" Fix)', () => {
+    it('should NOT capture text following the IBAN', () => {
 
-        const text = `${validIBAN} now`; 
+        const text = `${validIBAN} now`;
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches).toHaveLength(1);
-        expect(matches[0][0]).toBe(validIBAN); 
+        expect(matches[0][0]).toBe(validIBAN);
+
+    });
+
+    it('should NOT capture alphanumeric sentences following a spaced IBAN', () => {
+
+        const formatted = 'DE89 3704 0044 0532 0130 00';
+        const text = `My IBAN is ${formatted} and my text 123`;
+        const matches = Array.from(mask.find(text));
+
+        expect(matches).toHaveLength(1);
+        expect(matches[0][0]).toBe(formatted);
 
     });
 
@@ -52,9 +63,9 @@ describe('PII Mask Logic: IBAN', () => {
 
     it('should reject invalid checksums via validate()', () => {
 
-        const invalidIBAN = 'DE89370400440532013001'; 
+        const invalidIBAN = 'DE89370400440532013001';
         const matches = Array.from(mask.find(invalidIBAN));
-        
+
         expect(matches).toHaveLength(1);
         expect(mask.validate(matches[0][0])).toBe(false);
 

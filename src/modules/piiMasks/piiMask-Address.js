@@ -8,7 +8,7 @@ export default class AddressMask extends piiBaseMask {
 
     }
 
-    find(text, mode = 'strict') {
+    find(text) {
 
         const streetPart = /(?:[A-ZÄÖÜ][a-zA-ZäöüÄÖÜß\.-]*\s+)+/;
 

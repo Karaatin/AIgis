@@ -57,30 +57,35 @@ describe('PII Mask Logic: IP Address', () => {
 
     describe('Mode: Strict vs Developer', () => {
 
-        it('should FIND private IPs in Strict Mode but IGNORE in Developer Mode', () => {
+        it('should MASK private IPs in Strict Mode but IGNORE in Developer Mode', () => {
 
             const text = "IPs: 192.168.1.1, 10.0.0.5, 127.0.0.1";
 
-            const strictMatches = Array.from(mask.find(text, 'strict'));
-            expect(strictMatches.length).toBe(3);
+            const matches = Array.from(mask.find(text));
+            expect(matches.length).toBe(3);
 
-            const devMatches = Array.from(mask.find(text, 'developer'));
-            expect(devMatches.length).toBe(0);
+            expect(mask.validate(matches[0][0], 'strict')).toBe(true);
+            expect(mask.validate(matches[1][0], 'strict')).toBe(true);
+            expect(mask.validate(matches[2][0], 'strict')).toBe(true);
+
+            expect(mask.validate(matches[0][0], 'developer')).toBe(false);
+            expect(mask.validate(matches[1][0], 'developer')).toBe(false);
+            expect(mask.validate(matches[2][0], 'developer')).toBe(false);
 
         });
 
-        it('should ALWAYS FIND public IPs', () => {
+        it('should ALWAYS MASK public IPs', () => {
 
             const text = "DNS is 8.8.8.8";
 
-            const strictMatches = Array.from(mask.find(text, 'strict'));
-            expect(strictMatches.length).toBe(1);
+            const matches = Array.from(mask.find(text));
+            expect(matches.length).toBe(1);
 
-            const devMatches = Array.from(mask.find(text, 'developer'));
-            expect(devMatches.length).toBe(1);
+            expect(mask.validate(matches[0][0], 'strict')).toBe(true);
+            expect(mask.validate(matches[0][0], 'developer')).toBe(true);
 
         });
-        
+
     });
 
 });

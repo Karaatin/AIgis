@@ -8,7 +8,7 @@ export default class PathMask extends piiBaseMask {
 
     }
 
-    find(text, mode = 'strict') {
+    find(text) {
 
         const winAbs = /[a-zA-Z]:\\[\w\-\.\(\)\\]+/gi;
 
@@ -20,36 +20,7 @@ export default class PathMask extends piiBaseMask {
 
         const regex = new RegExp(`(${winAbs.source}|${winRel.source}|${unixAbs.source}|${unixRel.source})`, 'gi');
 
-        const matches = text.matchAll(regex);
-
-        if (mode === 'strict') {
-            return matches;
-        }
-
-        // developer mode
-        return (function* () {
-            for (const match of matches) {
-                const path = match[0].toLowerCase();
-
-                const isSafeDevPath =
-                    path.includes('node_modules') ||
-                    path.includes('/usr/bin/') ||
-                    path.includes('/usr/local/') ||
-                    path.includes('etc/') ||
-                    path.includes('src/') ||
-                    path.includes('utils/') ||
-                    path.includes('scripts/') ||
-                    path.includes('opt/') |
-                    path.startsWith('./') ||
-                    path.startsWith('../');
-
-                if (isSafeDevPath) {
-                    continue;
-                }
-
-                yield match;
-            }
-        })();
+        return text.matchAll(regex);
 
     }
 
@@ -63,6 +34,25 @@ export default class PathMask extends piiBaseMask {
 
         const digitCount = (path.match(/\d/g) || []).length;
         if (digitCount > path.length * 0.7) return false;
+
+        if (mode === 'developer') {
+            const lowerPath = path.toLowerCase();
+            const isSafeDevPath =
+                lowerPath.includes('node_modules') ||
+                lowerPath.includes('/usr/bin/') ||
+                lowerPath.includes('/usr/local/') ||
+                lowerPath.includes('etc/') ||
+                lowerPath.includes('src/') ||
+                lowerPath.includes('utils/') ||
+                lowerPath.includes('scripts/') ||
+                lowerPath.includes('opt/') |
+                lowerPath.startsWith('./') ||
+                lowerPath.startsWith('../');
+
+            if (isSafeDevPath) {
+                return false;
+            }
+        }
 
         return true;
 

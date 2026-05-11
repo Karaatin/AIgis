@@ -31,36 +31,9 @@ export default class URLMask extends piiBaseMask {
 
     }
 
-    find(text, mode = 'strict') {
+    find(text) {
 
-        const matches = text.matchAll(this.regex);
-
-        if (mode === 'strict') {
-            return matches;
-        }
-
-        return (function* () {
-            for (const match of matches) {
-                const url = match[0].toLowerCase();
-                
-                const isLocalOrDev = 
-                    url.includes('localhost') ||
-                    url.includes('127.0.0.1') ||
-                    url.endsWith('.local') ||
-                    url.endsWith('.test') ||
-                    url.endsWith('.example');
-
-                const isScriptFile = 
-                    (url.endsWith('.py') || url.endsWith('.sh') || url.endsWith('.pl')) &&
-                    !url.startsWith('http') && !url.startsWith('www');
-
-                if (isLocalOrDev || isScriptFile) {
-                    continue;
-                }
-
-                yield match;
-            }
-        })();
+        return text.matchAll(this.regex);
 
     }
 
@@ -69,6 +42,23 @@ export default class URLMask extends piiBaseMask {
         const lower = matchText.toLowerCase();
 
         if (!matchText.includes('.') && !lower.includes('localhost')) return false;
+
+        if (mode === 'developer') {
+            const isLocalOrDev = 
+                lower.includes('localhost') ||
+                lower.includes('127.0.0.1') ||
+                lower.endsWith('.local') ||
+                lower.endsWith('.test') ||
+                lower.endsWith('.example');
+
+            const isScriptFile = 
+                (lower.endsWith('.py') || lower.endsWith('.sh') || lower.endsWith('.pl')) &&
+                !lower.startsWith('http') && !lower.startsWith('www');
+
+            if (isLocalOrDev || isScriptFile) {
+                return false;
+            }
+        }
         
         return true;
 

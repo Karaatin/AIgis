@@ -18,10 +18,9 @@ export class piiBaseMask {
      * Finds PII matches in the given text.
      * Must be overwritten by subclasses.
      * @param {string} text - The text to scan
-     * @param {string} mode - 'strict' or 'developer'. Can be used to relax rules.
      * @returns {IterableIterator<RegExpMatchArray>} Iterator of matches
      */
-    find(text, mode = 'strict') {
+    find(text) {
 
         throw new Error(`find() must be implemented in ${this.constructor.name}`);
 
@@ -36,8 +35,8 @@ export class piiBaseMask {
      */
     validate(matchText, mode = 'strict') {
 
-        return true; 
-        
+        return true;
+
     }
 
 }

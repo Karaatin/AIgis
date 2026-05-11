@@ -8,14 +8,16 @@ export default class PhoneMask extends piiBaseMask {
 
     }
 
-    find(text, mode = 'strict') {
+    find(text) {
 
         const international = /(?:(?<=\s|^)\+|(?<=\s|^|\b)00)(?:[0-9][\s\-\(\)\.\/]{0,2}){6,14}[0-9]/gi;
-        
-        const national = /(?:(?<=\s|^)\(?|\b)0[0-9]{1,5}\)?[\s\-\.\/]{1,3}[0-9]{3,}(?:[\s\-\.\/][0-9]{2,})*\b/gi;
 
-        const regex = new RegExp(`(${international.source}|${national.source})`, 'gi');
-        
+        const national = /(?:(?<=\s|^)\(?|\b)0[0-9]{1,5}\)?[\s\-\.\/]{0,3}[0-9]{3,}(?:[\s\-\.\/][0-9]{2,})*\b/gi;
+
+        const us_national = /(?:(?<=\s|^)\(?|\b)[0-9]{3}\)?[\s\-\.]?[0-9]{3}[\s\-\.]?[0-9]{4}\b/gi;
+
+        const regex = new RegExp(`(${international.source}|${national.source}|${us_national.source})`, 'gi');
+
         return text.matchAll(regex);
 
     }
@@ -31,6 +33,6 @@ export default class PhoneMask extends piiBaseMask {
         }
 
         return true;
-        
+
     }
 }

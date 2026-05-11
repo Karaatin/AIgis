@@ -24,34 +24,25 @@ export default class IPMask extends piiBaseMask {
         const ipv6 = ipv6Parts.join('|');
         const regex = new RegExp(`(${ipv4}|${ipv6})`, 'gi');
 
-        const matches = text.matchAll(regex);
-
-        if (mode === 'strict') {
-            return matches;
-        }
-
-        // Developer Mode: Filterung via Generator
-        return (function* () {
-            for (const match of matches) {
-                const ip = match[0];
-                const lowerIP = ip.toLowerCase();
-
-                // IPv6 Loopback & Link-Local
-                if (ip === '::1' || ip === '::' || lowerIP.startsWith('fe80:')) continue;
-                
-                // IPv4 Loopback & General
-                if (ip.startsWith('127.') || ip === '0.0.0.0') continue;
-
-                // Private Ranges
-                if (ip.startsWith('10.') || ip.startsWith('192.168.')) continue;
-                if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip)) continue;
-
-                yield match;
-            }
-        })();
+        return text.matchAll(regex);
     }
 
     validate(matchText, mode = 'strict') {
+        if (mode === 'developer') {
+            const ip = matchText.trim();
+            const lowerIP = ip.toLowerCase();
+
+            // IPv6 Loopback & Link-Local
+            if (ip === '::1' || ip === '::' || lowerIP.startsWith('fe80:')) return false;
+            
+            // IPv4 Loopback & General
+            if (ip.startsWith('127.') || ip === '0.0.0.0') return false;
+
+            // Private Ranges
+            if (ip.startsWith('10.') || ip.startsWith('192.168.')) return false;
+            if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip)) return false;
+        }
+
         return true;
     }
 }

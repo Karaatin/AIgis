@@ -14,7 +14,7 @@
     <a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
     <img src="https://img.shields.io/badge/Status-Active_Development-orange.svg" alt="Status">
     <img src="https://img.shields.io/badge/Platform-Chromium-lightgrey.svg" alt="Platform">
-    <img src="https://img.shields.io/badge/Version-v1.0.1-brightgreen.svg" alt="Version">
+    <img src="https://img.shields.io/badge/Version-v1.1.0-brightgreen.svg" alt="Version">
   </p>
 </div>
 
