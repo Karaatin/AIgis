@@ -119,7 +119,7 @@
                 </div>
                 <div class="card panel">
                     <div class="header-row" style="margin-bottom: 15px;">
-                        <h3>Custom Words List</h3>
+                        <h3>Custom List</h3>
                         <div style="display: flex; gap: 10px;">
                             <button id="btnBulkDeleteDict" class="btn danger-sm hidden">Delete Selected (<span
                                     id="countDict">0</span>)</button>
@@ -127,12 +127,12 @@
                     </div>
 
                     <p class="desc" style="margin-bottom: 20px;">
-                        Add code-names, proprietary terms, or specific words you want masked before any prompt leaves
-                        your browser.
+                        Add proprietary terms, specific words or regex patterns you want masked before any
+                        prompt leaves your browser.
                     </p>
 
                     <div class="input-group-lg" style="margin-bottom: 5px;">
-                        <input type="text" id="dictInput" placeholder="Enter word to block (e.g. Project Apollo)...">
+                        <input type="text" id="dictInput" placeholder="Enter something to block...">
                         <button id="dictAddBtn">Add Entry</button>
                     </div>
                     <div id="dictFeedbackMsg" class="block-feedback"></div>
@@ -146,11 +146,12 @@
                                 <input type="checkbox" id="checkAllDict">
                             </div>
                             <span class="col-1 col-sortable active-sort" id="sortDictWord" data-dir="desc">Word / Phrase
+                                / RegEx
                                 <span class="sort-icon">↓</span></span>
                             <span class="text-right" style="width: 80px; text-align: right;">Actions</span>
                         </div>
                         <div id="wordListContainer" class="list-scroll-area">
-                            <div class="empty-state">No custom words defined yet.</div>
+                            <div class="empty-state">No custom entries defined yet.</div>
                         </div>
                     </div>
                     <div class="pagination-controls" id="dictPagination">
@@ -159,15 +160,17 @@
                         <button id="dictNextBtn" class="btn secondary" disabled>Next &raquo;</button>
                     </div>
                     <div class="btn-row" style="margin-top: 15px;">
-                        <button id="btnClearDictionary" class="btn danger">Clear Custom Words</button>
+                        <button id="btnClearDictionary" class="btn danger">Clear Custom Entries</button>
                     </div>
                 </div>
 
                 <div class="card panel">
                     <div class="header-row" style="margin-bottom: 15px;">
                         <h3>Active Vault (Restoration Data)</h3>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <label style="font-size: 0.85rem; color: var(--text-muted); margin-right: 10px; display: flex; align-items: center; gap: 8px;">Auto-prune (days): <input type="number" id="vaultPruneDays" min="1" max="365" class="modal-input" style="width: 65px; margin-bottom: 0; padding: 6px 8px; text-align: center; font-size: 0.9rem;"></label>
+                        <div class="vault-header-actions">
+                            <label class="prune-label">Auto-prune
+                                (days): <input type="number" id="vaultPruneDays" min="1" max="365"
+                                    class="modal-input prune-input"></label>
                             <button id="btnBulkDeleteVault" class="btn danger-sm hidden">Delete Selected (<span
                                     id="countVault">0</span>)</button>
                         </div>
@@ -273,7 +276,7 @@
                         <div>
                             <strong>GitHub Repository</strong>
                             <br>
-                            <small>Star my repo or report issues.</small>
+                            <small>Star our repo or report issues.</small>
                         </div>
                     </a>
                     <div class="link-item action" id="btnUpdateCheck">
@@ -313,7 +316,7 @@
                         <div>
                             <strong>Report an Issue</strong>
                             <br>
-                            <small>Found a bug? Let me know.</small>
+                            <small>Found a bug? Let us know.</small>
                         </div>
                     </a>
                 </div>

@@ -240,8 +240,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (list.length === 0) {
             wordListContainer.innerHTML = dictSearchQuery
-                ? '<div class="empty-state">No words match your search.</div>'
-                : '<div class="empty-state">No custom words defined yet.</div>';
+                ? '<div class="empty-state">No entries match your search.</div>'
+                : '<div class="empty-state">No custom entries defined yet.</div>';
 
             dictPageInfo.textContent = `Page 1 of 1`;
             dictPrevBtn.disabled = true;
@@ -263,16 +263,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         paginatedList.forEach(word => {
             const row = document.createElement('div');
             row.className = 'list-item';
+
+            const isRegex = /^\/(.+)\/[a-z]*$/.test(word);
+            let displayHTML = word;
+
+            if (isRegex) {
+                const match = word.match(/^\/(.+)\/([a-z]*)$/);
+                const pattern = match ? match[1] : word;
+                const flags = match && match[2] ? ` <span class="regex-flags">/${match[2]}</span>` : '';
+                displayHTML = `<code class="regex-code">${pattern}${flags}</code><span class="badge badge-regex">REGEX</span>`;
+            }
+
             row.innerHTML = `
                 <div class="col-check"><input type="checkbox" class="item-check" value="${word}"></div>
-                <span class="item-word col-1">${word}</span>
+                <span class="item-word col-1">${displayHTML}</span>
                 <div class="item-actions">
                     <button class="action-icon-btn edit" title="Edit">✎</button>
                     <button class="action-icon-btn delete" title="Delete">✕</button>
                 </div>`;
 
             row.querySelector('.delete').addEventListener('click', async () => {
-                const confirm = await Modal.open('Delete Word', `Remove "${word}" from custom dictionary?`, 'danger');
+                const modalTitle = isRegex ? 'Delete Regex Pattern' : 'Delete Word';
+                const displayPattern = isRegex ? word.match(/^\/(.+)\/[a-z]*$/)[1] : word;
+                const modalText = isRegex ? `Remove regex pattern "${displayPattern}" from custom dictionary?` : `Remove "${word}" from custom dictionary?`;
+
+                const confirm = await Modal.open(modalTitle, modalText, 'danger');
                 if (confirm) {
                     settingsData.customWords = settingsData.customWords.filter(w => w !== word);
                     await save();
@@ -324,7 +339,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     btnBulkDeleteDict.addEventListener('click', async () => {
-        const confirm = await Modal.open('Delete Selected', `Remove ${selectedDictWords.size} custom words?`, 'danger');
+        const confirm = await Modal.open('Delete Selected', `Remove ${selectedDictWords.size} custom entries?`, 'danger');
         if (confirm) {
             settingsData.customWords = settingsData.customWords.filter(w => !selectedDictWords.has(w));
             await save();
@@ -344,14 +359,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     dictAddBtn.addEventListener('click', async () => {
         const word = dictInput.value.trim();
         if (word) {
+            const isRegex = /^\/(.+)\/[a-z]*$/.test(word);
+            const displayPattern = isRegex ? word.match(/^\/(.+)\/[a-z]*$/)[1] : word;
+
             const exists = settingsData.customWords.some(w => w.toLowerCase() === word.toLowerCase());
             if (!exists) {
                 settingsData.customWords.push(word);
                 await save();
                 renderDictionary();
-                showDictFeedback(`Added "${word}" to blocked list`);
+                showDictFeedback(isRegex ? `Added "${displayPattern}" (regex) to block list` : `Added "${word}" to block list`);
             } else {
-                showDictFeedback(`"${word}" already blocked`);
+                showDictFeedback(isRegex ? `Regex pattern "${displayPattern}" already blocked` : `"${word}" already blocked`);
             }
             dictInput.value = '';
         }
@@ -575,6 +593,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <span class="col-2" title="${original}">${original}</span>
                 <div class="item-actions text-right" style="width: 80px; justify-content: flex-end;">
                     <button class="action-icon-btn btn-renew" data-ph="${placeholder}" title="Renew Expiration">↻</button>
+                    <button class="action-icon-btn delete" title="Delete">✕</button>
                 </div>
             `;
 
@@ -588,6 +607,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     row.classList.remove('selected');
                 }
                 updateVaultBulkUI();
+            });
+
+            row.querySelector('.delete').addEventListener('click', async () => {
+                const confirm = await Modal.open('Delete Entry', `Permanently delete placeholder "${placeholder}" with value "${original}" from Vault?`, 'danger');
+                if (confirm) {
+                    await StorageManager.removeVaultItems([placeholder]);
+                    renderVaultView();
+                }
             });
 
             const renewBtn = row.querySelector('.btn-renew');
@@ -621,7 +648,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     btnBulkDeleteVault.addEventListener('click', async () => {
-        const confirm = await Modal.open('Delete Selected', `Permanently delete ${selectedVaultItems.size} items from Vault?`, 'danger');
+        const confirm = await Modal.open('Delete Selected', `Permanently delete ${selectedVaultItems.size} entries from Vault?`, 'danger');
         if (confirm) {
             await StorageManager.removeVaultItems(Array.from(selectedVaultItems));
             renderVaultView();

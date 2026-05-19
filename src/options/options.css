@@ -969,3 +969,50 @@ input[type="checkbox"] {
 .txt-danger {
   color: var(--danger);
 }
+
+/* Regex Badge Styling */
+.badge-regex {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--surface-border);
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px; /* changed from right to left since badge will be on the right */
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.regex-code {
+  vertical-align: middle;
+  font-family: monospace;
+  color: var(--text);
+}
+
+.regex-flags {
+  opacity: 0.5;
+}
+
+/* Vault Header UI */
+.vault-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.prune-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prune-input {
+  width: 65px;
+  margin-bottom: 0;
+  padding: 6px 8px;
+  text-align: center;
+  font-size: 0.9rem;
+}

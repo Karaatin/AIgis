@@ -178,13 +178,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const word = inputWord.value.trim();
         if (word) {
+            const isRegex = /^\/(.+)\/[a-z]*$/.test(word);
+            const displayPattern = isRegex ? word.match(/^\/(.+)\/[a-z]*$/)[1] : word;
+
             const exists = settingsData.customWords.some(w => w.toLowerCase() === word.toLowerCase());
             if (!exists) {
                 settingsData.customWords.push(word);
                 await StorageManager.saveSettings(settingsData);
-                showFeedback(`Added "${word}" to blocked list`);
+                showFeedback(isRegex ? `Added "${displayPattern}" (regex) to block list` : `Added "${word}" to block list`);
             } else {
-                showFeedback(`"${word}" already blocked`);
+                showFeedback(isRegex ? `Regex pattern "${displayPattern}" already blocked` : `"${word}" already blocked`);
             }
             inputWord.value = '';
         }

@@ -7,10 +7,10 @@ describe('PII Mask Logic: Custom Dictionary', () => {
 
         const words = ['Müller', 'Schmidt'];
         const mask = new CustomMask(words);
-        
+
         const text = "The Meeting is with Mr. Müller and Mrs. Schmidt.";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(2);
         expect(matches[0][0]).toBe('Müller');
         expect(matches[1][0]).toBe('Schmidt');
@@ -21,23 +21,23 @@ describe('PII Mask Logic: Custom Dictionary', () => {
 
         const words = ['SecuredProject'];
         const mask = new CustomMask(words);
-        
+
         const text = "We are working on the securedproject.";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(1);
         expect(matches[0][0]).toBe('securedproject');
-        
+
     });
 
     it('should handle special characters (Escaping)', () => {
 
-        const words = ['C++', 'Node.js']; 
+        const words = ['C++', 'Node.js'];
         const mask = new CustomMask(words);
-        
+
         const text = "Developer skills: C++ and Node.js required.";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(2);
         expect(matches[0][0]).toBe('C++');
         expect(matches[1][0]).toBe('Node.js');
@@ -48,10 +48,10 @@ describe('PII Mask Logic: Custom Dictionary', () => {
 
         const words = ['Super', 'Superman'];
         const mask = new CustomMask(words);
-        
+
         const text = "Clark Kent is Superman.";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(1);
         expect(matches[0][0]).toBe('Superman');
 
@@ -60,14 +60,42 @@ describe('PII Mask Logic: Custom Dictionary', () => {
     it('should allow updating the word list dynamically', () => {
 
         const mask = new CustomMask(['OldWord']);
-        
+
         mask.updateWords(['NewWord']);
-        
+
         const text = "OldWord vs NewWord";
         const matches = Array.from(mask.find(text));
-        
+
         expect(matches.length).toBe(1);
         expect(matches[0][0]).toBe('NewWord');
+
+    });
+
+    it('should support literal regular expressions wrapped in slashes', () => {
+
+        const words = ['/USR-\\d{3}/', '/API_[A-Z0-9]{5}/'];
+        const mask = new CustomMask(words);
+
+        const text = "Delete user USR-123 and rotate key API_X9A2B immediately.";
+        const matches = Array.from(mask.find(text));
+
+        expect(matches.length).toBe(2);
+        expect(matches[0][0]).toBe('USR-123');
+        expect(matches[1][0]).toBe('API_X9A2B');
+
+    });
+
+    it('should support native RegExp objects', () => {
+
+        const words = [/USR-\d{3}/, /API_[A-Z0-9]{5}/];
+        const mask = new CustomMask(words);
+
+        const text = "Delete user USR-123 and rotate key API_X9A2B immediately.";
+        const matches = Array.from(mask.find(text));
+
+        expect(matches.length).toBe(2);
+        expect(matches[0][0]).toBe('USR-123');
+        expect(matches[1][0]).toBe('API_X9A2B');
 
     });
 

@@ -17,26 +17,40 @@ export default class CustomMask extends piiBaseMask {
             return null;
         }
 
-        const uniqueWords = [...new Set(this.words)].filter(w => w && w.trim().length > 0);
+        const patterns = this.words.map(item => {
+            
+            if (item instanceof RegExp) {
+                return item.source;
+            }
 
-        if (uniqueWords.length === 0) return null;
+            if (typeof item === 'string') {
+                const trimmed = item.trim();
+                if (trimmed.length === 0) return null;
 
-        uniqueWords.sort((a, b) => b.length - a.length);
+                const regexMatch = trimmed.match(/^\/(.+)\/[a-z]*$/);
+                if (regexMatch) {
+                    return regexMatch[1];
+                }
 
-        const patterns = uniqueWords.map(word => {
+                const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const startsWithWordChar = /^\w/.test(trimmed);
+                const startBoundary = startsWithWordChar ? '\\b' : '(?<!\\w)';
+                const endsWithWordChar = /\w$/.test(trimmed);
+                const endBoundary = endsWithWordChar ? '\\b' : '(?!\\w)';
 
-            const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                return `${startBoundary}${escaped}${endBoundary}`;
+            }
 
-            const startsWithWordChar = /^\w/.test(word);
-            const startBoundary = startsWithWordChar ? '\\b' : '(?<!\\w)';
+            return null;
+        }).filter(Boolean);
 
-            const endsWithWordChar = /\w$/.test(word);
-            const endBoundary = endsWithWordChar ? '\\b' : '(?!\\w)';
+        const uniquePatterns = [...new Set(patterns)];
 
-            return `${startBoundary}${escaped}${endBoundary}`;
-        });
+        if (uniquePatterns.length === 0) return null;
 
-        return new RegExp(`(${patterns.join('|')})`, 'gi');
+        uniquePatterns.sort((a, b) => b.length - a.length);
+
+        return new RegExp(`(${uniquePatterns.join('|')})`, 'gi');
     }
 
     find(text) {
