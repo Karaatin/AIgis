@@ -20,6 +20,7 @@ export const StorageManager = {
             url: true, 
             ip: true, 
             path: true, 
+            secret: true,
             custom: true, 
             toon: true
         },
@@ -35,6 +36,7 @@ export const StorageManager = {
                 url: 0, 
                 ip: 0, 
                 path: 0, 
+                secret: 0,
                 custom: 0, 
                 other: 0 
             },

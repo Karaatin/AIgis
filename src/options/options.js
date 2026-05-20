@@ -2,6 +2,7 @@
  * AIgis - Options Script
  */
 import { StorageManager } from '../utils/storage.js';
+import { MODULES_UI } from '../utils/modules.js';
 
 // modal helpers
 const Modal = {
@@ -77,18 +78,6 @@ const Modal = {
         this.resolvePromise = null;
     }
 };
-
-const MODULES_UI = [
-    { id: 'email', icon: '✉️', label: 'Mail' },
-    { id: 'iban', icon: '💳', label: 'IBAN' },
-    { id: 'phone', icon: '📞', label: 'Phone' },
-    { id: 'address', icon: '🏠', label: 'Address' },
-    { id: 'ip', icon: '🌐', label: 'IP' },
-    { id: 'url', icon: '🔗', label: 'URL' },
-    { id: 'path', icon: '📁', label: 'Path' },
-    { id: 'custom', icon: '🛡️', label: 'Custom' },
-    { id: 'toon', icon: '⚡', label: 'Toon' }
-];
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -410,7 +399,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         piiHeader.innerHTML = '<td colspan="2" class="group-header">PII MASKING STATS</td>';
         statsBody.appendChild(piiHeader);
 
-        const piiCategories = ['email', 'iban', 'phone', 'address', 'ip', 'url', 'path', 'custom'];
+        const piiCategories = ['email', 'iban', 'phone', 'address', 'ip', 'url', 'path', 'secret', 'custom'];
         piiCategories.forEach(key => {
             const val = statsData.piiBreakdown[key] || 0;
             const dimClass = val > 0 ? '' : 'txt-dimmed';

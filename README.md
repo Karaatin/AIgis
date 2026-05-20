@@ -14,7 +14,7 @@
     <a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
     <img src="https://img.shields.io/badge/Status-Active_Development-orange.svg" alt="Status">
     <img src="https://img.shields.io/badge/Platform-Chromium-lightgrey.svg" alt="Platform">
-    <img src="https://img.shields.io/badge/Version-v1.2.0-brightgreen.svg" alt="Version">
+    <img src="https://img.shields.io/badge/Version-v1.3.0-brightgreen.svg" alt="Version">
   </p>
 </div>
 
@@ -32,9 +32,9 @@ Many companies and individuals hesitate to use tools like ChatGPT, Claude, Gemin
 
 ### 🔒 1. Privacy & Sanitization
 
-* **PII Detection:** Automatically detects and masks emails, phone numbers, IBANs, file paths, URLs, IP addresses and more.
+* **PII Detection:** Automatically detects and masks emails, phone numbers, IBANs, file paths, URLs, IP addresses, secrets and more.
 * **Smart Developer Mode:** Switch between 'Strict' mode (masks everything) and 'Developer' mode (smartly ignores safe programming variables like `localhost`, `10.x.x.x` private network ranges, or standard paths like `./node_modules/` to avoid breaking system code inputs).
-* **Custom Dictionaries & Regex:** Define your own "forbidden words" (e.g., internal project names like `Project Apollo`) that get replaced with placeholders (`[CUSTOM_1]`). You can also specify powerful Custom Regex Patterns directly in the UI by wrapping your regex in forward slashes (e.g., `/EMP-\d{4}/`).
+* **Custom Dictionaries & Regex:** Define your own "forbidden words" (e.g., internal project names like `Project Apollo`) that get replaced with placeholders (`[CUSTOM_1]`). You can also specify powerful custom regex patterns directly in the UI by wrapping your regex in forward slashes (e.g., `/EMP-\d{4}/`).
 * **Local Processing:** All logic runs completely native within your browser. No data is sent to any 3rd party server for verification.
 
 ### ⚡ 2. Token Optimization (TOON)

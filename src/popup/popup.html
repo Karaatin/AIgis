@@ -9,8 +9,10 @@
 </head>
 
 <body>
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
 
   <div class="layout">
 
@@ -68,14 +70,14 @@
     </div>
 
     <div>
-      <div class="section-head">ACTIVE MODULES</div>
+      <div class="section-head">MODULES</div>
       <div class="grid" id="modulesGrid"></div>
     </div>
 
     <div>
       <div class="section-head">QUICK BLOCK</div>
       <div class="input-row">
-        <input type="text" id="inputWord" placeholder="Add word or phrase...">
+        <input type="text" id="inputWord" placeholder="Add word, phrase or /regex/...">
         <button id="btnAddWord">Add</button>
       </div>
       <div id="feedbackMsg" class="feedback"></div>

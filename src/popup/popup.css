@@ -38,6 +38,17 @@ body.loaded {
     transition: opacity 0.2s ease-in-out;
 }
 
+.bg-blobs {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    z-index: -1;
+    pointer-events: none;
+}
+
 .blob {
     position: absolute;
     border-radius: 50%;
@@ -329,8 +340,8 @@ input#modeDev:checked~.mode-opt[for="modeDev"] {
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
 }
 
 .module-card {
@@ -356,9 +367,10 @@ input#modeDev:checked~.mode-opt[for="modeDev"] {
 }
 
 .module-label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.2px;
 }
 
 .module-card.active {
@@ -517,8 +529,9 @@ footer {
     font-size: 0.65rem;
     color: var(--text-secondary);
     opacity: 0.6;
-    margin-top: -2px;
-    margin-bottom: -8px;
+    margin-top: 0;
+    margin-bottom: 0;
     font-family: monospace;
     letter-spacing: 0.5px;
+    line-height: 1;
 }

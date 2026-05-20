@@ -31,6 +31,7 @@ export class PiiDetector {
     initMasks() {
         this.masks = [];
 
+        if (this.modules.secret) this.masks.push(new Masks.SecretMask());
         if (this.modules.email) this.masks.push(new Masks.EmailMask());
         if (this.modules.iban) this.masks.push(new Masks.IBANMask());
         if (this.modules.phone) this.masks.push(new Masks.PhoneMask());

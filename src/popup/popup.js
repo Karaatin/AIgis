@@ -2,18 +2,7 @@
  * AIgis - Popup Script
  */
 import { StorageManager } from '../utils/storage.js';
-
-const MODULES_UI = [
-    { id: 'email', icon: '✉️', label: 'Mail' },
-    { id: 'iban', icon: '💳', label: 'IBAN' },
-    { id: 'phone', icon: '📞', label: 'Phone' },
-    { id: 'address', icon: '🏠', label: 'Address' },
-    { id: 'ip', icon: '🌐', label: 'IP' },
-    { id: 'url', icon: '🔗', label: 'URL' },
-    { id: 'path', icon: '📁', label: 'Path' },
-    { id: 'custom', icon: '🛡️', label: 'Custom' },
-    { id: 'toon', icon: '⚡', label: 'Toon' }
-];
+import { MODULES_UI } from '../utils/modules.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 

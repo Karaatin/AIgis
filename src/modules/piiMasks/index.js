@@ -9,3 +9,4 @@ export { default as IPMask } from './piiMask-IP.js';
 export { default as PathMask } from './piiMask-Path.js';
 export { default as PhoneMask } from './piiMask-Phone.js';
 export { default as URLMask } from './piiMask-URL.js';
+export { default as SecretMask } from './piiMask-Secret.js';
