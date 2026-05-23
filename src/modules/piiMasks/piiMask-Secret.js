@@ -12,13 +12,13 @@ export default class SecretMask extends piiBaseMask {
             /\bASIA[0-9A-Z]{16}\b/gi,
 
             // Azure (contextual - only near azure-specific keywords)
-            /(?:azure|tenant[_\s-]?id|AZURE_[A-Z_]+)\s*[=:]\s*['"]?[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}['"]?/gi,
+            /(?:azure|tenant[_\s-]?id|AZURE_[A-Z_]+)\s*[=:]\s*['"]?([a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12})['"]?/gi,
 
             // Google
             /\bAIza[0-9A-Za-z\-_]{35,}\b/gi,
 
             // --- VCS & CI/CD TOKENS ---
-            /\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b/gi,
+            /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b/gi,
             /\bgithub_pat_[A-Za-z0-9_]{22,}\b/gi,
             /\bglpat-[A-Za-z0-9\-_]{20,}\b/gi,
             /\bglptt-[A-Za-z0-9\-_]{20,}\b/gi,
@@ -27,7 +27,7 @@ export default class SecretMask extends piiBaseMask {
             /\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g,
 
             // --- DATABASE CONNECTIONS ---
-            /(mongodb|postgres|mysql|redis|amqp|amqps):\/\/[^:\s]+:[^@\s]+@[^\s]+/gi,
+            /(?:mongodb|postgres|mysql|redis|amqp|amqps):\/\/[^:\s]+:[^@\s]+@[^\s]+/gi,
 
             // --- PAYMENT PLATFORMS ---
             // Stripe
@@ -45,13 +45,13 @@ export default class SecretMask extends piiBaseMask {
             /\brzp_test_[A-Za-z0-9]{14,}\b/gi,
 
             // Paytm
-            /\bpaytm[_\s-]?(?:key|secret|token)[\s:=]+['"]?[A-Za-z0-9]{20,}['"]?/gi,
-            /\b(?:merchant[_\s-]?key|merchant[_\s-]?id)[\s:=]+['"]?[A-Za-z0-9]{20,}['"]?/gi,
+            /\bpaytm[_\s-]?(?:key|secret|token)[\s:=]+['"]?([A-Za-z0-9]{20,})['"]?/gi,
+            /\b(?:merchant[_\s-]?key|merchant[_\s-]?id)[\s:=]+['"]?([A-Za-z0-9]{20,})['"]?/gi,
 
             // --- COMMUNICATION & MESSAGING ---
             // Twilio
             /\bAC[a-z0-9]{32}\b/gi,
-            /\b(?:twilio[_\s-]?auth[_\s-]?token|auth[_\s-]?token)[\s:=]+['"]?[A-Za-z0-9]{32,}['"]?/gi,
+            /\b(?:twilio[_\s-]?auth[_\s-]?token|auth[_\s-]?token)[\s:=]+['"]?([A-Za-z0-9]{32,})['"]?/gi,
 
             // Slack
             /\bxox[bpsare]-[A-Za-z0-9\-]{10,}\b/gi,
@@ -66,7 +66,7 @@ export default class SecretMask extends piiBaseMask {
             /\bSG\.[A-Za-z0-9_\-]{22,}\.[A-Za-z0-9_\-]{22,}\b/gi,
 
             // Mailgun (contextual to avoid false positives)
-            /(?:mailgun|MAILGUN_API_KEY)\s*[=:]\s*['"]?key-[a-z0-9]{32,}['"]?/gi,
+            /(?:mailgun|MAILGUN_API_KEY)\s*[=:]\s*['"]?(key-[a-z0-9]{32,})['"]?/gi,
 
             // --- AI & ML PLATFORMS ---
             /\bsk-ant-[A-Za-z0-9\-_]{32,}\b/gi,
@@ -79,7 +79,7 @@ export default class SecretMask extends piiBaseMask {
             /\bAAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140,}\b/gi,
 
             // Heroku (contextual)
-            /(?:heroku[_\s-]?api[_\s-]?key|HEROKU_API_KEY)\s*[=:]\s*['"]?[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}['"]?/gi,
+            /(?:heroku[_\s-]?api[_\s-]?key|HEROKU_API_KEY)\s*[=:]\s*['"]?([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})['"]?/gi,
 
             // Vercel
             /\bvc[pcirka]_[A-Za-z0-9_\-]{24,}\b/gi,
@@ -92,10 +92,10 @@ export default class SecretMask extends piiBaseMask {
             /\bsbp_[a-f0-9]{40,}\b/gi,
 
             // Cloudflare (contextual)
-            /(?:cloudflare|CF_API_TOKEN|CF_API_KEY)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{37,}['"]?/gi,
+            /(?:cloudflare|CF_API_TOKEN|CF_API_KEY)\s*[=:]\s*['"]?([A-Za-z0-9\-_]{37,})['"]?/gi,
 
             // Datadog (contextual)
-            /(?:datadog|dd)[_\s-]?(?:api[_\s-]?key|app[_\s-]?key|DD_API_KEY|DD_APP_KEY)\s*[=:]\s*['"]?[a-f0-9]{32,}['"]?/gi,
+            /(?:datadog|dd)[_\s-]?(?:api[_\s-]?key|app[_\s-]?key|DD_API_KEY|DD_APP_KEY)\s*[=:]\s*['"]?([a-f0-9]{32,})['"]?/gi,
 
             // --- E-COMMERCE ---
             // Shopify
@@ -108,17 +108,17 @@ export default class SecretMask extends piiBaseMask {
             // --- SENSITIVE CONTEXT PATTERNS ---
             /(?:otp|pin|code|verification)[\s:=]+['"]?(\d{4,8})['"]?/gi,
             /\b(?:enter|your|the)[\s]+(?:otp|pin|code)[\s:]+(\d{4,8})\b/gi,
-            /(?:password|passwd|pwd|secret|key|token|api)(?:\s+is)?[\s:=]+['"]?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}['"]?/gi,
-            /(?:password|passwd|pwd)(?:\s+is)?[\s:=]+['"]?[A-Za-z0-9!@#$%^&*()_+\-=.]{8,}['"]?/gi,
+            /(?:password|passwd|pwd|secret|key|token|api)(?:\s+is)?[\s:=]+['"]?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})['"]?/gi,
+            /(?:password|passwd|pwd)(?:\s+is)?[\s:=]+['"]?([A-Za-z0-9!@#$%^&*()_+\-=.]{8,})['"]?/gi,
 
             // Bearer Token (skips specific patterns)
-            /\b(bearer|token)[\s:]+(?!ghp_|gho_|ghu_|ghs_|ghr_|github_pat_|glpat-|glptt-|sk_live_|sk_test_|pk_live_|pk_test_|sk-ant-|sk-(?:proj-)?[A-Za-z0-9]|xox[bpsare]-|npm_|hf_|gsk_|rzp_|shp(?:at|ca|pa|ss|ua)_|sq0|sbp_|dop_v1_|vc[pcirka]_)[A-Za-z0-9\-_.]{20,}\b/gi,
+            /\b(?:bearer|token)[\s:]+((?!ghp_|gho_|ghu_|ghs_|ghr_|github_pat_|glpat-|glptt-|sk_live_|sk_test_|pk_live_|pk_test_|sk-ant-|sk-(?:proj-)?[A-Za-z0-9]|xox[bpsare]-|npm_|hf_|gsk_|rzp_|shp(?:at|ca|pa|ss|ua)_|sq0|sbp_|dop_v1_|vc[pcirka]_)[A-Za-z0-9\-_.]{20,})\b/gi,
 
             // --- KEY=VALUE FORMAT PATTERNS ---
-            /(?:api[_-]?key|apikey|api_key|api[_-]?secret|apisecret|api_secret)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi,
-            /(?:secret[_-]?key|secretkey|secret_key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi,
-            /(?:access[_-]?key|accesskey|access_key|access[_-]?token|accesstoken|access_token)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi,
-            /(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"]?[A-Za-z0-9\-_]{20,}['"]?/gi,
+            /(?:api[_-]?key|apikey|api_key|api[_-]?secret|apisecret|api_secret)\s*[=:]\s*['"]?([A-Za-z0-9\-_]{20,})['"]?/gi,
+            /(?:secret[_-]?key|secretkey|secret_key)\s*[=:]\s*['"]?([A-Za-z0-9\-_]{20,})['"]?/gi,
+            /(?:access[_-]?key|accesskey|access_key|access[_-]?token|accesstoken|access_token)\s*[=:]\s*['"]?([A-Za-z0-9\-_]{20,})['"]?/gi,
+            /(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"]?([A-Za-z0-9\-_]{20,})['"]?/gi,
 
             // --- PRIVATE KEYS ---
             /-----BEGIN\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----/gi,
@@ -196,14 +196,24 @@ export default class SecretMask extends piiBaseMask {
             regex.lastIndex = 0;
             let match;
             while ((match = regex.exec(text)) !== null) {
-                const matchedText = match[0];
+                let matchedText = match[0];
+                let start = match.index;
+
+                if (match[1] !== undefined) {
+                    const offset = match[0].indexOf(match[1]);
+                    if (offset !== -1) {
+                        start += offset;
+                        matchedText = match[1];
+                    }
+                }
+
                 if (matchedText.length === 0) {
                     regex.lastIndex = match.index + 1;
                     continue;
                 }
                 allMatches.push({
-                    start: match.index,
-                    end: match.index + matchedText.length,
+                    start: start,
+                    end: start + matchedText.length,
                     text: matchedText
                 });
                 if (!regex.global) break;

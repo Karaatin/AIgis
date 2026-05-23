@@ -83,13 +83,13 @@ MIIEowIBAAKCAQEA0y8q9c7P...
         const mask = new SecretMask();
         const text = "api_secret: d83hf73j92ks84jd93hf72k and access_token: a1b2c3d4e5f6g7h8i9j0k";
         const matches = Array.from(mask.find(text)).map(m => m[0]);
-        expect(matches).toContain('api_secret: d83hf73j92ks84jd93hf72k');
-        expect(matches).toContain('access_token: a1b2c3d4e5f6g7h8i9j0k');
+        expect(matches).toContain('d83hf73j92ks84jd93hf72k');
+        expect(matches).toContain('a1b2c3d4e5f6g7h8i9j0k');
     });
 
     it('should NOT match standard words or ordinary URLs', () => {
         const mask = new SecretMask();
-        const text = "Hello world! This is a simple test website: https://github.com/souvikghosh957/secret-sanitizer-extension.";
+        const text = "Hello world! This is a simple test website: https://github.com/Karaatin/AIgis.";
         const matches = Array.from(mask.find(text)).map(m => m[0]);
         expect(matches.length).toBe(0);
     });
@@ -177,11 +177,10 @@ MIIEowIBAAKCAQEA0y8q9c7P...
         const mask = new SecretMask();
         const text = "otp = 123456 and your pin: 98765 and password is abcdefgh and Bearer abcdefghijklmnopqrstuvwx and api_key = abcdefghijklmnopqrstuvwx";
         const matches = Array.from(mask.find(text)).map(m => m[0]);
-        expect(matches.some(m => m.includes('123456'))).toBe(true);
-        expect(matches.some(m => m.includes('98765'))).toBe(true);
-        expect(matches.some(m => m.includes('abcdefgh'))).toBe(true);
-        expect(matches.some(m => m.includes('Bearer abcdefghijklmnopqrstuvwx'))).toBe(true);
-        expect(matches.some(m => m.includes('api_key = abcdefghijklmnopqrstuvwx'))).toBe(true);
+        expect(matches).toContain('123456');
+        expect(matches).toContain('98765');
+        expect(matches).toContain('abcdefgh');
+        expect(matches).toContain('abcdefghijklmnopqrstuvwx');
     });
 
     it('should find SSH and PGP Private Keys', () => {
@@ -197,6 +196,15 @@ lQOYBF2W...
         const matches2 = Array.from(mask.find(text2)).map(m => m[0]);
         expect(matches1).toContain(text1);
         expect(matches2).toContain(text2);
+    });
+
+    it('should only mask the secret value and not the label prefix for passwords like POSTGRES_PASSWORD', () => {
+        const mask = new SecretMask();
+        const text = "POSTGRES_PASSWORD: abcdefh1";
+        const matches = Array.from(mask.find(text)).map(m => m[0]);
+        expect(matches).toContain('abcdefh1');
+        expect(matches).not.toContain('PASSWORD: abcdefh1');
+        expect(matches).not.toContain('POSTGRES_PASSWORD: abcdefh1');
     });
 
 });
