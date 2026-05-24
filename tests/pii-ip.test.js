@@ -76,13 +76,25 @@ describe('PII Mask Logic: IP Address', () => {
 
         it('should ALWAYS MASK public IPs', () => {
 
-            const text = "DNS is 8.8.8.8";
+            const text = "DNS is 203.0.113.195";
 
             const matches = Array.from(mask.find(text));
             expect(matches.length).toBe(1);
 
             expect(mask.validate(matches[0][0], 'strict')).toBe(true);
             expect(mask.validate(matches[0][0], 'developer')).toBe(true);
+
+        });
+
+        it('should IGNORE cloud metadata and public DNS resolvers in Developer Mode', () => {
+
+            const text = "Metadata: 169.254.169.254 and DNS: 8.8.8.8";
+
+            const matches = Array.from(mask.find(text));
+            expect(matches.length).toBe(2);
+
+            expect(mask.validate(matches[0][0], 'developer')).toBe(false);
+            expect(mask.validate(matches[1][0], 'developer')).toBe(false);
 
         });
 

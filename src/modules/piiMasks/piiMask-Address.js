@@ -28,6 +28,19 @@ export default class AddressMask extends piiBaseMask {
 
         if (matchText.length < 10) return false;
         if (!/\d/.test(matchText)) return false;
+
+        if (mode === 'developer') {
+            const lower = matchText.toLowerCase();
+            if (
+                lower.includes('test street') ||
+                lower.includes('test st') ||
+                lower.includes('example street') ||
+                lower.includes('example st')
+            ) {
+                return false;
+            }
+        }
+
         return true;
 
     }

@@ -15,4 +15,21 @@ export default class EmailMask extends piiBaseMask {
 
     }
 
+    validate(matchText, mode = 'strict') {
+        if (mode === 'developer') {
+            const email = matchText.trim().toLowerCase();
+            if (
+                email.endsWith('@example.com') ||
+                email.endsWith('@example.org') ||
+                email.endsWith('@example.net') ||
+                email.endsWith('@test.com') ||
+                email.endsWith('.local') ||
+                email.endsWith('@localhost')
+            ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

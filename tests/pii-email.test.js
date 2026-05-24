@@ -26,7 +26,24 @@ describe('PII Mask Logic: Email', () => {
         const matches = Array.from(mask.find(text));
 
         expect(matches.length).toBe(0);
+
+    });
         
+    it('should skip safe mock emails in developer mode but mask real ones', () => {
+
+        const mask = new EmailMask();
+        const text = "Emails: test@example.com, test@mydev.local, user@gmail.com";
+        const matches = Array.from(mask.find(text));
+
+        expect(matches.length).toBe(3);
+
+        expect(mask.validate(matches[0][0], 'developer')).toBe(false); // test@example.com
+        expect(mask.validate(matches[1][0], 'developer')).toBe(false); // developer@localhost
+        expect(mask.validate(matches[2][0], 'developer')).toBe(true);  // user@gmail.com
+
+        expect(mask.validate(matches[0][0], 'strict')).toBe(true);
+        expect(mask.validate(matches[1][0], 'strict')).toBe(true);
+
     });
 
 });

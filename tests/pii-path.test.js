@@ -105,13 +105,16 @@ describe('PII Mask Logic: File Paths', () => {
 
     it('should skip safe developer paths in developer mode', () => {
 
-        const text = "Error in src/modules/utils.js or node_modules/express/index.js";
+        const text = "Error in src/modules/utils.js or node_modules/express/index.js or /var/run/docker.sock or dist/build/main.js or docker/config/nginx.conf";
         const matches = Array.from(mask.find(text));
 
-        expect(matches.length).toBe(2);
+        expect(matches.length).toBe(5);
 
         expect(mask.validate(matches[0][0], 'developer')).toBe(false);
         expect(mask.validate(matches[1][0], 'developer')).toBe(false);
+        expect(mask.validate(matches[2][0], 'developer')).toBe(false);
+        expect(mask.validate(matches[3][0], 'developer')).toBe(false);
+        expect(mask.validate(matches[4][0], 'developer')).toBe(false);
 
     });
 

@@ -32,6 +32,12 @@ export default class PhoneMask extends piiBaseMask {
             if (matchText.match(/^(19|20)\d{2}-\d{2}-\d{2}/)) return false;
         }
 
+        if (mode === 'developer') {
+            // Repetitive (e.g. 1111111) or sequential (e.g. 12345678)
+            if (/^(.)\1+$/.test(digits)) return false;
+            if ('123456789012345'.includes(digits) || '0123456789'.includes(digits)) return false;
+        }
+
         return true;
 
     }

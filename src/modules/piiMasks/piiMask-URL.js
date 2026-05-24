@@ -9,9 +9,9 @@ export default class URLMask extends piiBaseMask {
 
     buildRegex() {
 
-        const customDevTlds = ['local', 'test', 'example'];
+        const customDevTlds = ['local', 'test', 'example', 'internal', 'localdomain', 'lan', 'default'];
         const allTlds = Array.from(new Set([...tlds, ...customDevTlds]));
-        
+
         const tldGroup = allTlds.join('|');
         const urlChars = `[-a-zA-Z0-9@:%._\\+~#=]{1,256}`;
         const safeEndChar = `[-a-zA-Z0-9()@:%_\\+~#&/=]`;
@@ -40,15 +40,21 @@ export default class URLMask extends piiBaseMask {
         if (!matchText.includes('.') && !lower.includes('localhost')) return false;
 
         if (mode === 'developer') {
-            const isLocalOrDev = 
+            const isLocalOrDev =
                 lower.includes('localhost') ||
                 lower.includes('127.0.0.1') ||
+                lower.includes('host.docker.internal') ||
+                lower.includes('gateway.docker.internal') ||
+                lower.includes('kubernetes.default') ||
                 lower.endsWith('.local') ||
                 lower.endsWith('.test') ||
-                lower.endsWith('.example');
+                lower.endsWith('.example') ||
+                lower.endsWith('.internal') ||
+                lower.endsWith('.localdomain') ||
+                lower.endsWith('.lan');
 
             const fileExtensions = ['.py', '.sh', '.pl', '.rs', '.java', '.md', '.zip', '.so', '.app'];
-            const isScriptFile = 
+            const isScriptFile =
                 fileExtensions.some(ext => lower.endsWith(ext)) &&
                 !lower.startsWith('http') && !lower.startsWith('www');
 
@@ -56,7 +62,7 @@ export default class URLMask extends piiBaseMask {
                 return false;
             }
         }
-        
+
         return true;
 
     }

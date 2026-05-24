@@ -42,10 +42,21 @@ export default class PathMask extends piiBaseMask {
                 lowerPath.includes('/usr/bin/') ||
                 lowerPath.includes('/usr/local/') ||
                 lowerPath.includes('etc/') ||
+                lowerPath.includes('opt/') ||
+                lowerPath.includes('docker') ||
+                lowerPath.includes('var/run/') ||
+                lowerPath.includes('var/lib/') ||
+                lowerPath.includes('var/log/') ||
                 lowerPath.includes('src/') ||
                 lowerPath.includes('utils/') ||
                 lowerPath.includes('scripts/') ||
-                lowerPath.includes('opt/') |
+                lowerPath.includes('dist/') ||
+                lowerPath.includes('build/') ||
+                lowerPath.includes('target/') ||
+                lowerPath.includes('bin/') ||
+                lowerPath.includes('.git/') ||
+                lowerPath.includes('.github/') ||
+                lowerPath.includes('/tmp/') ||
                 lowerPath.startsWith('./') ||
                 lowerPath.startsWith('../');
 

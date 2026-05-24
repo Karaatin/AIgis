@@ -1,7 +1,7 @@
 import { piiBaseMask } from './piiBaseMask.js';
 
 export default class IPMask extends piiBaseMask {
-    
+
     constructor() {
         super("IP_ADDRESS");
     }
@@ -34,9 +34,16 @@ export default class IPMask extends piiBaseMask {
 
             // IPv6 Loopback & Link-Local
             if (ip === '::1' || ip === '::' || lowerIP.startsWith('fe80:')) return false;
-            
+
             // IPv4 Loopback & General
             if (ip.startsWith('127.') || ip === '0.0.0.0') return false;
+
+            // Link-Local Cloud Metadata IP (AWS, GCP, Azure metadata services)
+            if (ip.startsWith('169.254.')) return false;
+
+            // Common Public DNS Resolvers (Google, Cloudflare, Quad9)
+            const safeDns = ['8.8.8.8', '8.8.4.4', '1.1.1.1', '1.0.0.1', '9.9.9.9', '149.112.112.112'];
+            if (safeDns.includes(ip)) return false;
 
             // Private Ranges
             if (ip.startsWith('10.') || ip.startsWith('192.168.')) return false;

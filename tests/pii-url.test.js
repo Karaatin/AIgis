@@ -107,6 +107,19 @@ describe('PII Mask Logic: URL', () => {
 
         });
 
+        it('should IGNORE local/internal hosts and domains in Developer Mode', () => {
+
+            const text = "Connect to host.docker.internal or kubernetes.default or app.internal";
+
+            const matches = Array.from(mask.find(text));
+            expect(matches.length).toBe(3);
+
+            expect(mask.validate(matches[0][0], 'developer')).toBe(false);
+            expect(mask.validate(matches[1][0], 'developer')).toBe(false);
+            expect(mask.validate(matches[2][0], 'developer')).toBe(false);
+
+        });
+
     });
 
 });
