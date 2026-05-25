@@ -14,6 +14,16 @@ describe('ToonConverter (Official Repo)', () => {
 
     });
 
+    it('should use tab delimiters and prepend instruction note for JSON arrays', () => {
+        const input = '[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]';
+        const output = ToonConverter.convert(input);
+        
+        expect(output).toContain('Note: Structured data below is optimized in TOON format');
+        expect(output).toContain('id\tname');
+        expect(output).toContain('1\tAlice');
+        expect(output).toContain('2\tBob');
+    });
+
     it('should Round-Trip using official decode() from Markdown', () => {
 
         const originalJson = {

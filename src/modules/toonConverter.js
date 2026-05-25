@@ -4,6 +4,8 @@
  */
 import { encode, decode } from '@toon-format/monorepo/packages/toon/src/index.ts';
 
+const NOTE_PREFIX = "Note: Structured data below is optimized in TOON format (2-space indent, arrays show length and fields, tab-separated). If you generate structured tables or arrays in your response, use this same TOON format.";
+
 export const ToonConverter = {
 
     convert(text) {
@@ -33,8 +35,8 @@ export const ToonConverter = {
                             try {
                                 const cleanBlock = block.replace(/\u00A0/g, ' '); // strip non-breaking spaces
                                 const jsonObj = JSON.parse(cleanBlock);
-                                const toonOutput = encode(jsonObj);
-                                const toReplace = `\n\`\`\`text\nAIgis:TOON\n${toonOutput.trim()}\n\`\`\`\n`;
+                                const toonOutput = encode(jsonObj, { delimiter: '\t' });
+                                const toReplace = `\n${NOTE_PREFIX}\n\n\`\`\`toon\nAIgis:TOON\n${toonOutput.trim()}\n\`\`\`\n`;
 
                                 result += text.substring(lastEndIndex, i);
                                 result += toReplace;
@@ -61,10 +63,10 @@ export const ToonConverter = {
             const clean = rawString.trim().replace(/```/g, '').trim();
             if (!clean) return null;
             const jsonObj = decode(clean);
-            
+
             if (typeof jsonObj !== 'object' || jsonObj === null) return null;
             if (Object.keys(jsonObj).length === 0 && clean !== '_') return null;
-            
+
             return JSON.stringify(jsonObj, null, 2);
         } catch (e) {
             return null;
@@ -72,7 +74,11 @@ export const ToonConverter = {
     },
 
     restore(text) {
-        const toonBlockRegex = /```text\s+AIgis:TOON\s+([\s\S]*?)\s+```/gi;
+        // escape special chars in NOTE_PREFIX for safe regex use
+        const escapedPrefix = NOTE_PREFIX.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regexStr = `(?:${escapedPrefix}\\s+)?\`\`\`(?:text|toon|yaml)\\s+AIgis:TOON\\s+([\\s\\S]*?)\\s+\`\`\``;
+        const toonBlockRegex = new RegExp(regexStr, "gi");
+
         return text.replace(toonBlockRegex, (match, content) => {
             const res = this.decodeRaw(content);
             return res || match;

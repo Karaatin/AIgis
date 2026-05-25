@@ -117,13 +117,12 @@ export const StorageManager = {
                 stats.piiTotal += count;
             }
         }
-
         if (diff.toonSavings && diff.toonSavings > 0) {
             stats.toon.conversions = (stats.toon.conversions || 0) + 1;
             stats.toon.originalChars = (stats.toon.originalChars || 0) + (diff.charsOriginal || 0);
             stats.toon.optimizedChars = (stats.toon.optimizedChars || 0) + (diff.charsOptimized || 0);
             
-            stats.toon.estimatedTokensSaved = (stats.toon.estimatedTokensSaved || 0) + (diff.toonSavings / 4);
+            stats.toon.estimatedTokensSaved = (stats.toon.estimatedTokensSaved || 0) + Math.round(diff.toonSavings / 2.5);
         }
         
         return new Promise((resolve) => chrome.storage.local.set({ stats }, resolve));
