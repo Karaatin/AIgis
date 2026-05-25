@@ -38,6 +38,7 @@
             <a href="#" class="logo-wrap">
                 <img src="assets/icon.svg" alt="AIgis Logo" width="40" height="40" class="fill-white">
                 AIgis
+                <span class="version-tag" style="display: none;"></span>
             </a>
             <div class="nav-links">
                 <a href="#features">Features</a>
@@ -113,10 +114,11 @@
                     <a href="https://toonformat.dev" target="_blank" class="text-accent-link">Token
                         Optimized Object
                         Notation (TOON)</a>
-                    compresses heavy JSON and code objects natively in your clipboard before you paste them into LLMs.
-                    Relying on the information provided in the TOON documentation, it reaches 74% accuracy (vs JSON's
-                    70%) while using ~40% fewer tokens in mixed-structure
-                    benchmarks across 4 models.
+                    automatically detects and compresses heavy JSON structures inline in your prompt before sending.
+                    Based on TOON benchmarks, it achieves 74% accuracy (vs JSON's 70%) while using ~40% fewer tokens in
+                    mixed-structure tests.
+                    Upon copying response text, it seamlessly decodes TOON blocks back to clean JSON directly in your
+                    clipboard!
                 </p>
             </div>
 
@@ -264,6 +266,7 @@
                 <a href="#" class="logo-wrap text-white text-xl">
                     <img src="assets/icon.svg" alt="AIgis Logo" width="32" height="32" class="fill-white">
                     AIgis
+                    <span class="version-tag" style="display: none;"></span>
                 </a>
                 <p>A client-side browser extension that automatically masks Personally Identifiable Information (PII)
                     before your prompts ever leave your device.</p>
@@ -313,15 +316,25 @@
     </footer>
 
     <script>
-        async function fetchSupportedHosts() {
+        async function fetchVersionAndHosts() {
             const listDiv = document.getElementById('platformList');
+            const versionElements = document.querySelectorAll('.version-tag');
+
+            let manifestVersion = null;
+
             try {
-                // fetch manifest directly from main branch
                 const res = await fetch('https://raw.githubusercontent.com/Karaatin/AIgis/main/public/manifest.json');
                 const manifest = await res.json();
 
-                const matches = manifest.content_scripts[0].matches;
+                if (manifest && manifest.version) {
+                    manifestVersion = `v${manifest.version}`;
+                    versionElements.forEach(el => {
+                        el.textContent = manifestVersion;
+                        el.style.display = 'inline-block';
+                    });
+                }
 
+                const matches = manifest.content_scripts[0].matches;
                 const hosts = matches.map(url => {
                     const displayUrl = url.replace('https://', '').replace('http://', '').replace('/*', '').replace('www.', '');
                     const linkUrl = url.replace('/*', '');
@@ -335,12 +348,26 @@
                 `).join('');
 
             } catch (err) {
-                console.error("Failed to fetch hosts:", err);
+                console.error("Failed to fetch manifest:", err);
                 listDiv.innerHTML = `<span class="text-danger">Failed to dynamically load supported platforms.</span>`;
+            }
+
+            try {
+                const res = await fetch('https://api.github.com/repos/Karaatin/AIgis/releases/latest');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.tag_name) {
+                        versionElements.forEach(el => {
+                            el.textContent = data.tag_name;
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn("GitHub Release API rate-limited or failed, using manifest version fallback:", err);
             }
         }
 
-        fetchSupportedHosts();
+        fetchVersionAndHosts();
     </script>
 </body>
 

@@ -221,6 +221,27 @@ nav {
     font-weight: 700;
 }
 
+.version-tag {
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    padding: 0.1rem 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    margin-left: 0.1rem;
+    letter-spacing: 0.02em;
+    display: inline-block;
+    vertical-align: middle;
+    transition: all 0.3s ease;
+}
+
+.logo-wrap:hover .version-tag {
+    background: rgba(16, 185, 129, 0.15);
+    color: rgb(16, 185, 129);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
 .nav-links {
     display: flex;
     gap: 2rem;
