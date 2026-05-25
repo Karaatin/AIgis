@@ -322,6 +322,15 @@
 
             let manifestVersion = null;
 
+            versionElements.forEach(el => {
+                el.title = "View Releases";
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open('https://github.com/Karaatin/AIgis/releases', '_blank');
+                });
+            });
+
             try {
                 const res = await fetch('https://raw.githubusercontent.com/Karaatin/AIgis/main/public/manifest.json');
                 const manifest = await res.json();
