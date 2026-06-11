@@ -99,8 +99,13 @@ export class PiiDetector {
 
                     placeholder = `[${mask.prefix}_${nextIndex}]`;
 
-                    // add mapping locally
-                    vault.mappings[placeholder] = original;
+                    // add mapping locally in canonical {val, expiresAt} format,
+                    // honoring the user's configured prune interval
+                    const pruneDays = this.settings.vaultPruneDays || 30;
+                    vault.mappings[placeholder] = {
+                        val: original,
+                        expiresAt: Date.now() + (pruneDays * 24 * 60 * 60 * 1000)
+                    };
                     vault.reverseIndex[original] = placeholder;
                     vaultModified = true;
                 }
