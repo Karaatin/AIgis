@@ -2,6 +2,8 @@
  * AIgis - DOM Observer
  * Handles DOM traversal, input detection, and UI highlighting.
  */
+import { Logger } from './logger.js';
+
 export const DomObserver = {
 
     capturedEvent: null,
@@ -41,7 +43,7 @@ export const DomObserver = {
                 target.dispatchEvent(event);
             }
         } catch (err) {
-            console.error("🛡️ [AIgis] Error releasing click:", err);
+            Logger.error("Error releasing click:", err);
         }
 
         this.capturedEvent = null;

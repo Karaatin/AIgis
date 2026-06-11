@@ -2,6 +2,8 @@
  * AIgis - Storage Manager
  * Manages settings, statistics, and the PII vault (secure cache).
  */
+import { Logger } from './logger.js';
+
 export const StorageManager = {
     
     defaults: {
@@ -356,7 +358,7 @@ export const StorageManager = {
             }
             return false;
         } catch (e) {
-            console.error("Import failed:", e);
+            Logger.error("Import failed:", e);
             return false;
         }
     }

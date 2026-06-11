@@ -33,7 +33,7 @@ const updateIconState = (tabId, isEnabled) => {
     };
     if (tabId) options.tabId = tabId;
 
-    chrome.action.setIcon(options).catch(err => console.warn("Icon update failed:", err));
+    chrome.action.setIcon(options).catch(err => Logger.warn("Icon update failed:", err));
 };
 
 function isSupportedUrl(url) {
@@ -68,7 +68,7 @@ async function evaluateIconState(tabId, url) {
 
         updateIconState(tabId, isSupportedUrl(url));
     } catch (e) {
-        console.warn("evaluateIconState failed:", e);
+        Logger.warn("evaluateIconState failed:", e);
     }
 }
 

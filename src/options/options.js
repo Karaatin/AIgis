@@ -3,6 +3,7 @@
  */
 import { StorageManager } from '../utils/storage.js';
 import { MODULES_UI } from '../utils/modules.js';
+import { Logger } from '../utils/logger.js';
 
 // modal helpers
 const Modal = {
@@ -83,6 +84,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     Modal.init();
 
+    // load data from storage
+    const settingsData = await StorageManager.getSettings();
+    const statsData = await StorageManager.getStats();
+    const save = async () => await StorageManager.saveSettings(settingsData);
+
+    Logger.init(settingsData);
+
     // version badge
     try {
         const manifest = chrome.runtime.getManifest();
@@ -91,12 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const b2 = document.querySelector('.build-badge');
         if (b1) b1.textContent = `v${v}`;
         if (b2) b2.textContent = `Version ${v}`;
-    } catch (e) { console.warn(e); }
-
-    // load data from storage
-    const settingsData = await StorageManager.getSettings();
-    const statsData = await StorageManager.getStats();
-    const save = async () => await StorageManager.saveSettings(settingsData);
+    } catch (e) { Logger.warn("Version badge update failed:", e); }
 
     const navItems = document.querySelectorAll('.nav-item');
     const sections = document.querySelectorAll('.tab-content');
@@ -726,7 +729,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
             } catch (error) {
-                console.error(error);
+                Logger.error("Update check failed:", error);
                 updateStatus.textContent = `Error: ${error.message}`;
                 updateStatus.style.color = "#dc2626";
             }

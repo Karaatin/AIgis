@@ -40,7 +40,7 @@ async function initAIgis() {
         
         Logger.info("AIgis Content Script loaded & ready.");
     } catch (e) {
-        console.error("AIgis Init Error:", e);
+        Logger.error("AIgis Init Error:", e);
     }
 }
 

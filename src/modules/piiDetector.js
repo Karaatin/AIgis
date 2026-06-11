@@ -3,6 +3,7 @@
  */
 import * as Masks from './piiMasks/index.js';
 import { StorageManager } from '../utils/storage.js';
+import { Logger } from '../utils/logger.js';
 
 export class PiiDetector {
 
@@ -25,6 +26,8 @@ export class PiiDetector {
 
         this.initMasks();
         this.initialized = true;
+
+        Logger.info(`Detector initialized. Mode: '${this.mode}', active masks: [${this.masks.map(m => m.type).join(', ')}]`);
     }
 
     // order of masks matters!!!
@@ -76,9 +79,14 @@ export class PiiDetector {
             // unique Set for database operations
             const uniqueMatches = [...new Set(matches.map(m => m[0]))];
 
+            if (uniqueMatches.length > 0) {
+                Logger.info(`${mask.type}: ${uniqueMatches.length} unique candidate(s) found.`);
+            }
+
             for (const original of uniqueMatches) {
 
                 if (mask.validate && !mask.validate(original, this.mode)) {
+                    Logger.info(`${mask.type}: candidate "${original}" rejected by '${this.mode}' mode filter.`);
                     continue;
                 }
 
@@ -92,7 +100,9 @@ export class PiiDetector {
 
                 let placeholder = vault.reverseIndex[original];
 
-                if (!placeholder) {
+                if (placeholder) {
+                    Logger.info(`${mask.type}: vault hit, reusing ${placeholder} (${occurrenceCount}x).`);
+                } else {
                     const currentMax = vault.counters[mask.prefix] || 0;
                     const nextIndex = currentMax + 1;
                     vault.counters[mask.prefix] = nextIndex;
@@ -108,6 +118,8 @@ export class PiiDetector {
                     };
                     vault.reverseIndex[original] = placeholder;
                     vaultModified = true;
+
+                    Logger.info(`${mask.type}: new mapping ${placeholder} created (${occurrenceCount}x, expires in ${pruneDays} days).`);
                 }
 
                 // temporary UUID to prevent later regex passes from corrupting the placeholder

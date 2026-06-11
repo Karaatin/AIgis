@@ -120,6 +120,32 @@ describe('PII Mask Logic: URL', () => {
 
         });
 
+        it('should IGNORE reserved example domains in Developer Mode (incl. dev-safe emails)', () => {
+
+            const text = "See example.com or https://www.example.org/docs?q=1 or sub.test.com, mail test@example.com";
+
+            const matches = Array.from(mask.find(text));
+            expect(matches.length).toBe(4);
+
+            matches.forEach(m => {
+                expect(mask.validate(m[0], 'developer')).toBe(false);
+                expect(mask.validate(m[0], 'strict')).toBe(true);
+            });
+
+        });
+
+        it('should still MASK domains merely containing reserved names in Developer Mode', () => {
+
+            const text = "Visit myexample.com or example.company.com";
+
+            const matches = Array.from(mask.find(text));
+            expect(matches.length).toBe(2);
+
+            expect(mask.validate(matches[0][0], 'developer')).toBe(true); // myexample.com
+            expect(mask.validate(matches[1][0], 'developer')).toBe(true); // example.company.com
+
+        });
+
     });
 
 });
