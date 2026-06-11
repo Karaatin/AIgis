@@ -3,7 +3,7 @@
  * Wraps console methods to respect the global debug setting.
  */
 export const Logger = {
-    
+
     isDebug: false,
     isInitialized: false,
 
@@ -11,17 +11,23 @@ export const Logger = {
 
         if (!settings || !settings.settings) {
             this.isDebug = false;
+            this.isInitialized = false;
             return;
         }
 
         this.isDebug = !!settings.settings.debugMode;
-        
-        if (this.isDebug && !this.isInitialized) {
+
+        if (!this.isDebug) {
+            this.isInitialized = false;
+            return;
+        }
+
+        if (!this.isInitialized) {
             const level = settings.settings.usageProfile || 'unknown';
-            
+
             console.log("%c🛡️ [AIgis] Debug Mode Enabled", "color: #10b981; font-weight: bold;");
             console.log(`%c🛡️ [AIgis] Initialized. Protection Level: ${level}`, "color: #10b981;");
-            
+
             this.isInitialized = true;
         }
     },
@@ -32,8 +38,8 @@ export const Logger = {
     info(...args) {
         if (!this.isDebug) return;
         console.log(
-            "%c🛡️ [AIgis]", 
-            "color: #3b82f6; font-weight: bold;", 
+            "%c🛡️ [AIgis]",
+            "color: #3b82f6; font-weight: bold;",
             ...args
         );
     },
@@ -44,8 +50,8 @@ export const Logger = {
     warn(...args) {
         if (!this.isDebug) return;
         console.warn(
-            "%c🛡️ [AIgis Warning]", 
-            "color: #f59e0b; font-weight: bold;", 
+            "%c🛡️ [AIgis Warning]",
+            "color: #f59e0b; font-weight: bold;",
             ...args
         );
     },
@@ -55,8 +61,8 @@ export const Logger = {
      */
     error(...args) {
         console.error(
-            "%c🛡️ [AIgis ERROR]", 
-            "color: #ef4444; font-weight: bold; font-size: 1.1em;", 
+            "%c🛡️ [AIgis ERROR]",
+            "color: #ef4444; font-weight: bold; font-size: 1.1em;",
             ...args
         );
     },

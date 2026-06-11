@@ -3,6 +3,7 @@
  * Uses the official 'toon-format' library.
  */
 import { encode, decode } from '@toon-format/monorepo/packages/toon/src/index.ts';
+import { Logger } from '../utils/logger.js';
 
 const NOTE_PREFIX = "Note: Structured data below is optimized in TOON format (2-space indent, arrays show length and fields, tab-separated). If you generate structured tables or arrays in your response, use this same TOON format.";
 
@@ -38,12 +39,18 @@ export const ToonConverter = {
                                 const toonOutput = encode(jsonObj, { delimiter: '\t' });
                                 const toReplace = `\n${NOTE_PREFIX}\n\n\`\`\`toon\nAIgis:TOON\n${toonOutput.trim()}\n\`\`\`\n`;
 
+                                Logger.info(`TOON: converted JSON block (${block.length} chars -> ${toonOutput.trim().length} chars).`);
+
                                 result += text.substring(lastEndIndex, i);
                                 result += toReplace;
                                 lastEndIndex = j + 1;
                                 i = j; // skip over parsed block
                             } catch (e) {
                                 // not valid JSON, continue outer loop
+                                // only log blocks that plausibly were meant to be JSON, to avoid noise from prose braces
+                                if (block.length >= 30 && block.includes(':')) {
+                                    Logger.info(`TOON: skipped JSON-like block at index ${i} (${block.length} chars): ${e.message}`);
+                                }
                             }
                             break;
                         } else if (depth < 0) {
@@ -64,11 +71,18 @@ export const ToonConverter = {
             if (!clean) return null;
             const jsonObj = decode(clean);
 
-            if (typeof jsonObj !== 'object' || jsonObj === null) return null;
-            if (Object.keys(jsonObj).length === 0 && clean !== '_') return null;
+            if (typeof jsonObj !== 'object' || jsonObj === null) {
+                Logger.info("TOON: decode produced a non-object result, skipping.");
+                return null;
+            }
+            if (Object.keys(jsonObj).length === 0 && clean !== '_') {
+                Logger.info("TOON: decode produced an empty object, skipping.");
+                return null;
+            }
 
             return JSON.stringify(jsonObj, null, 2);
         } catch (e) {
+            Logger.info(`TOON: decode failed (${e.message}). Block left untouched.`);
             return null;
         }
     },
@@ -81,6 +95,7 @@ export const ToonConverter = {
 
         return text.replace(toonBlockRegex, (match, content) => {
             const res = this.decodeRaw(content);
+            if (res) Logger.info("TOON: restored block to JSON.");
             return res || match;
         });
     }

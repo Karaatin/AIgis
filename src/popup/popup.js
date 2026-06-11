@@ -3,6 +3,7 @@
  */
 import { StorageManager } from '../utils/storage.js';
 import { MODULES_UI } from '../utils/modules.js';
+import { Logger } from '../utils/logger.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -34,6 +35,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         settingsData = await StorageManager.getSettings();
         statsData = await StorageManager.getStats();
 
+        Logger.init(settingsData);
+
         renderAll();
 
         setTimeout(() => {
@@ -43,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (e) {
 
-        console.error("Popup Init Error:", e);
+        Logger.error("Popup Init Error:", e);
 
     }
 

@@ -53,12 +53,21 @@ export default class URLMask extends piiBaseMask {
                 lower.endsWith('.localdomain') ||
                 lower.endsWith('.lan');
 
+            let host = lower.replace(/^https?:\/\//, '').replace(/^www\./, '');
+            host = host.split(/[/?#]/)[0];
+            const atIndex = host.lastIndexOf('@');
+            if (atIndex !== -1) host = host.substring(atIndex + 1);
+            host = host.split(':')[0];
+
+            const reservedDomains = ['example.com', 'example.org', 'example.net', 'test.com'];
+            const isReservedDomain = reservedDomains.some(d => host === d || host.endsWith('.' + d));
+
             const fileExtensions = ['.py', '.sh', '.pl', '.rs', '.java', '.md', '.zip', '.so', '.app'];
             const isScriptFile =
                 fileExtensions.some(ext => lower.endsWith(ext)) &&
                 !lower.startsWith('http') && !lower.startsWith('www');
 
-            if (isLocalOrDev || isScriptFile) {
+            if (isLocalOrDev || isReservedDomain || isScriptFile) {
                 return false;
             }
         }

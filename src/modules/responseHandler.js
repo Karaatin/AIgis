@@ -4,6 +4,7 @@
 */
 
 import { ToonConverter } from './toonConverter.js';
+import { Logger } from '../utils/logger.js';
 
 export const ResponseHandler = {
 
@@ -59,6 +60,7 @@ export const ResponseHandler = {
 
     updateVault(vaultData) {
         this.vaultCache = vaultData.mappings || {};
+        Logger.info(`ResponseHandler: vault cache updated (${Object.keys(this.vaultCache).length} mappings).`);
     },
 
     getOriginalValue(ph) {
@@ -157,6 +159,10 @@ export const ResponseHandler = {
             }
         });
 
+        if (nodesToReplace.length > 0) {
+            Logger.info(`ResponseHandler: rendering badges in ${nodesToReplace.length} text node(s).`);
+        }
+
         nodesToReplace.forEach(textNode => {
             const fragment = document.createDocumentFragment();
             let lastIndex = 0;
@@ -208,7 +214,10 @@ export const ResponseHandler = {
                 const jsonString = ToonConverter.decodeRaw(rawContent);
 
                 if (jsonString) {
+                    Logger.info("ResponseHandler: TOON block detected and decoded to JSON panel.");
                     this.replaceWithJsonBlock(block, jsonString);
+                } else {
+                    Logger.warn("ResponseHandler: TOON marker found but decode failed. Block left as-is (right-click decode available).");
                 }
             }
         });
@@ -313,6 +322,8 @@ export const ResponseHandler = {
         if (this.isPeekActive === shouldPeek) return;
         this.isPeekActive = shouldPeek;
 
+        Logger.info(`ResponseHandler: global peek ${shouldPeek ? 'enabled' : 'disabled'}.`);
+
         const badges = document.querySelectorAll('.aigis-badge');
         badges.forEach(b => {
             const ph = b.dataset.placeholder;
@@ -356,6 +367,8 @@ export const ResponseHandler = {
 
         e.preventDefault();
         e.stopImmediatePropagation();
+
+        Logger.info("ResponseHandler: smart copy intercepted (unmasking badges / decoding TOON blocks).");
 
         container.querySelectorAll('.aigis-badge').forEach(b => {
             const ph = b.dataset.placeholder;
