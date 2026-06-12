@@ -2,11 +2,6 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { PiiDetector } from '../../src/modules/piiDetector.js';
 import { StorageManager } from '../../src/utils/storage.js';
 
-/**
- * Regression test: sanitize() must persist new vault mappings in the
- * canonical {val, expiresAt} object format (not as a plain string),
- * honoring the user's configured vaultPruneDays.
- */
 describe('PiiDetector: Vault mapping format', () => {
 
     const DAY_MS = 24 * 60 * 60 * 1000;

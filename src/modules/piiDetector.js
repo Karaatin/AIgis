@@ -3,6 +3,7 @@
  */
 import * as Masks from './piiMasks/index.js';
 import { StorageManager } from '../utils/storage.js';
+import { PatternValidator } from './patternValidator.js';
 import { Logger } from '../utils/logger.js';
 
 export class PiiDetector {
@@ -18,16 +19,54 @@ export class PiiDetector {
     async init() {
         if (this.initialized) return;
 
-        const data = await StorageManager.getSettings();
+        const data = await StorageManager.getEffectiveSettings();
         this.settings = data.settings;
         this.modules = data.modules;
-        this.customWords = data.customWords || [];
         this.mode = this.settings.usageProfile || 'strict';
+
+        const localResult = PatternValidator.validateWords(data.customWords || [], {
+            allowRegex: true,
+            sourceName: 'Local dictionary'
+        });
+        this.customWords = localResult.accepted;
+
+        this.subscriptionWords = await this._loadSubscriptionWords();
 
         this.initMasks();
         this.initialized = true;
 
-        Logger.info(`Detector initialized. Mode: '${this.mode}', active masks: [${this.masks.map(m => m.type).join(', ')}]`);
+        Logger.info(`Detector initialized. Mode: '${this.mode}', active masks: [${this.masks.map(m => m.type).join(', ')}]` +
+            (data.overrides ? ` (settings managed by '${data.overrides.providerName}')` : ''));
+    }
+
+    async _loadSubscriptionWords() {
+        const words = [];
+
+        if (this.settings.subscriptionsEnabled === false) {
+            Logger.info('Subscriptions globally disabled, no feed words loaded.');
+            return words;
+        }
+
+        const subscriptions = await StorageManager.getSubscriptions();
+        if (subscriptions.length === 0) return words;
+
+        const cache = await StorageManager.getSubscriptionData();
+
+        for (const sub of subscriptions.filter(s => s.enabled)) {
+            const entry = cache[sub.id];
+            if (!entry || !Array.isArray(entry.customWords) || entry.customWords.length === 0) continue;
+
+            const { accepted, rejected } = PatternValidator.validateWords(entry.customWords, {
+                allowRegex: sub.allowRegex,
+                sourceName: `Subscription '${sub.name}'`
+            });
+            words.push(...accepted);
+
+            Logger.info(`Subscription '${sub.name}': ${accepted.length} words loaded` +
+                (rejected.length ? `, ${rejected.length} rejected` : '') + '.');
+        }
+
+        return words;
     }
 
     // order of masks matters!!!
@@ -42,8 +81,9 @@ export class PiiDetector {
         if (this.modules.path) this.masks.push(new Masks.PathMask());
         if (this.modules.ip) this.masks.push(new Masks.IPMask());
         if (this.modules.url) this.masks.push(new Masks.URLMask());
-        if (this.modules.custom && this.customWords.length > 0) {
-            this.masks.push(new Masks.CustomMask(this.customWords));
+        const allCustomWords = [...this.customWords, ...(this.subscriptionWords || [])];
+        if (this.modules.custom && allCustomWords.length > 0) {
+            this.masks.push(new Masks.CustomMask(allCustomWords));
         }
     }
 
@@ -109,8 +149,6 @@ export class PiiDetector {
 
                     placeholder = `[${mask.prefix}_${nextIndex}]`;
 
-                    // add mapping locally in canonical {val, expiresAt} format,
-                    // honoring the user's configured prune interval
                     const pruneDays = this.settings.vaultPruneDays || 30;
                     vault.mappings[placeholder] = {
                         val: original,

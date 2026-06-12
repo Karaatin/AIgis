@@ -28,6 +28,9 @@
                 <button class="nav-item" data-tab="dictionary">
                     <span class="icon">🛡️</span> Data & Dictionaries
                 </button>
+                <button class="nav-item" data-tab="subscriptions">
+                    <span class="icon">🔔</span> Subscriptions
+                </button>
                 <button class="nav-item" data-tab="statistics">
                     <span class="icon">📊</span> Statistics
                 </button>
@@ -136,9 +139,19 @@
                         <button id="dictAddBtn">Add Entry</button>
                     </div>
                     <div id="dictFeedbackMsg" class="block-feedback"></div>
-                    <div class="search-bar-sm" style="margin-bottom: 15px;">
-                        <span class="icon">🔍</span>
-                        <input type="search" id="dictSearch" placeholder="Search dictionary...">
+                    <div class="dict-filter-row">
+                        <div class="search-bar-sm" style="flex-grow: 1;">
+                            <span class="icon">🔍</span>
+                            <input type="search" id="dictSearch" placeholder="Search dictionary...">
+                        </div>
+                        <select id="dictSourceFilter" class="filter-select" title="Filter by source">
+                            <option value="all">All Sources</option>
+                            <option value="local">Local Sources Only</option>
+                            <option value="subscriptions">Subscriptions</option>
+                        </select>
+                        <select id="dictSubFilter" class="filter-select hidden" title="Filter by subscription">
+                            <option value="all">All Subscriptions</option>
+                        </select>
                     </div>
                     <div class="list-wrapper">
                         <div class="list-header">
@@ -211,8 +224,10 @@
                 </div>
 
                 <div class="card panel">
-                    <h3>Import / Export Hub</h3>
-                    <p class="desc">Share custom dictionaries with teams or backup your settings securely.</p>
+                    <h3>Share & Backup</h3>
+                    <p class="desc">Backup your settings or share custom dictionaries with others as JSON files.
+                        Tip: for teams that should always stay in sync, host a ruleset once and let everyone add it
+                        in the <strong>🔔 Subscriptions</strong> tab instead — updates then arrive automatically.</p>
                     <div class="btn-row" style="margin-top: 15px;">
                         <button id="btnImportSettings" class="btn primary">Import</button>
                         <input type="file" id="fileImportSettings" hidden accept=".json">
@@ -222,6 +237,46 @@
                         <button id="btnExportConfig" class="btn secondary">Export Configuration</button>
                         <button id="btnExportDictionary" class="btn secondary">Export Dictionary</button>
                         <button id="btnExportVault" class="btn secondary">Export Vault</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="subscriptions" class="tab-content">
+                <div class="header-row">
+                    <h1>Subscriptions</h1>
+                </div>
+
+                <div class="card panel">
+                    <h3>Add Subscription</h3>
+                    <p class="desc" style="margin-bottom: 20px;">
+                        Got a rules link from your team, company or another trusted source? Paste it below and AIgis
+                        keeps those masking rules up to date for you — automatically and safely. Your own data never
+                        leaves this browser.
+                    </p>
+                    <div class="input-group-lg" style="margin-bottom: 5px;">
+                        <input type="url" id="subUrlInput" placeholder="https://your-team.example/aigis-rules.json">
+                        <button id="subAddBtn">Subscribe</button>
+                    </div>
+                    <div id="subFeedbackMsg" class="block-feedback"></div>
+                </div>
+
+                <div class="card panel">
+                    <div class="header-row" style="margin-bottom: 5px;">
+                        <h3>Subscriptions</h3>
+                        <div class="sub-global-actions">
+                            <button id="subUpdateAllBtn" class="btn secondary">Update All Now</button>
+                            <label class="toggle-switch"
+                                title="Pause or resume all subscriptions at once. Each subscription remembers its own state.">
+                                <input type="checkbox" id="subGlobalToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <p class="desc" style="margin-bottom: 15px;" id="subGlobalHint">
+                        The switch on the right pauses or resumes all subscriptions at once.
+                    </p>
+                    <div id="subscriptionListContainer">
+                        <div class="empty-state">No subscriptions yet.</div>
                     </div>
                 </div>
             </section>
@@ -336,6 +391,14 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <div id="subChoiceModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="subModalTitle">
+        <div class="modal-content">
+            <h3 id="subModalTitle">Confirm</h3>
+            <div id="subModalBody" class="sub-modal-body"></div>
+            <div class="modal-actions" id="subModalActions"></div>
+        </div>
     </div>
 
     <div id="appModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="modalTitle"

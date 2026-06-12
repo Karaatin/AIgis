@@ -15,7 +15,7 @@ let settings = null;
 
 async function initAIgis() {
     try {
-        settings = await StorageManager.getSettings();
+        settings = await StorageManager.getEffectiveSettings();
         Logger.init(settings);
         await detector.init();
 
@@ -25,19 +25,19 @@ async function initAIgis() {
         if (settings.settings.enabled) {
             if (document.body) {
                 ResponseHandler.init();
-                Logger.info("🛡️ [AIgis] Response Observer active.");
+                Logger.info("Response Observer active.");
             } else {
                 const observer = new MutationObserver(() => {
                     if (document.body) {
                         observer.disconnect();
                         ResponseHandler.init();
-                        Logger.info("🛡️ [AIgis] Response Observer active (delayed).");
+                        Logger.info("Response Observer active (delayed).");
                     }
                 });
                 observer.observe(document.documentElement, { childList: true });
             }
         }
-        
+
         Logger.info("AIgis Content Script loaded & ready.");
     } catch (e) {
         Logger.error("AIgis Init Error:", e);
@@ -53,45 +53,39 @@ if (document.readyState === 'loading') {
 chrome.storage.onChanged.addListener(async (changes, namespace) => {
     if (namespace === 'sync') {
 
-        Logger.info("🛡️ [AIgis] Sync Storage changed.");
+        Logger.info("Sync Storage changed.");
 
-        if (changes.settings) {
-            const newSettings = changes.settings.newValue;
-            
-            if (settings) {
-                settings.settings = { ...settings.settings, ...newSettings };
-            } else {
-                settings = { settings: newSettings };
-            }
-            
+        if (changes.settings || changes.modules || changes.customWords || changes.subscriptions) {
+            settings = await StorageManager.getEffectiveSettings();
             Logger.init(settings);
-            
-            if (settings.settings.enabled) {
-                Logger.info("🛡️ [AIgis] Re-activating Response Observer.");
-                ResponseHandler.startObserver();
-            } else {
-                Logger.info("🛡️ [AIgis] Deactivating Response Observer (Global Switch OFF).");
-                ResponseHandler.stopObserver();
-            }
-            
-            detector.initialized = false; 
-        }
 
-        if (changes.modules || changes.customWords) {
-            if (changes.modules && settings) {
-                settings.modules = changes.modules.newValue;
+            if (changes.settings || changes.subscriptions) {
+                if (settings.settings.enabled) {
+                    Logger.info("Re-activating Response Observer.");
+                    ResponseHandler.startObserver();
+                } else {
+                    Logger.info("Deactivating Response Observer (Global Switch OFF).");
+                    ResponseHandler.stopObserver();
+                }
             }
+
             detector.initialized = false;
         }
 
     }
 
     else if (namespace === 'local') {
-        
+
         if (changes.vault) {
-             Logger.info("🛡️ [AIgis] Vault updated. Syncing ResponseHandler cache.");
-             const newVault = changes.vault.newValue;
-             ResponseHandler.updateVault(newVault);
+            Logger.info("Vault updated. Syncing ResponseHandler cache.");
+            const newVault = changes.vault.newValue;
+            ResponseHandler.updateVault(newVault);
+        }
+
+        if (changes.subscriptionData) {
+            Logger.info("Subscription payload updated. Reloading mask engine.");
+            settings = await StorageManager.getEffectiveSettings();
+            detector.initialized = false;
         }
 
     }
@@ -123,7 +117,7 @@ document.addEventListener('click', async (e) => {
 async function handleInteraction(sourceType, target, originalEvent) {
 
     if (isProcessing) return;
-    
+
     if (!settings || !settings.settings.enabled) {
         release(sourceType, target);
         return;
@@ -143,7 +137,7 @@ async function handleInteraction(sourceType, target, originalEvent) {
 
     try {
         const originalText = DomObserver.readText(inputEl);
-        
+
         if (!originalText || originalText.trim().length === 0) {
             isProcessing = false;
             release(sourceType, inputEl);
@@ -163,23 +157,23 @@ async function handleInteraction(sourceType, target, originalEvent) {
         currentText = piiResult.sanitizedText;
         statsDiff.piiCounts = piiResult.piiCounts;
 
-        const textAfterPii = currentText; 
+        const textAfterPii = currentText;
 
         // 2. toon
         if (settings.modules.toon) {
             currentText = ToonConverter.convert(currentText);
-            
+
             const originalLength = textAfterPii.length;
             const optimizedLength = currentText.length;
             const lengthDiff = originalLength - optimizedLength;
-            
+
             if (lengthDiff > 0) {
-                toonSavings = lengthDiff; 
+                toonSavings = lengthDiff;
                 statsDiff.charsOriginal = originalLength;
                 statsDiff.charsOptimized = optimizedLength;
             }
         }
-        
+
         statsDiff.toonSavings = toonSavings;
 
         Logger.info("Sanitized:", currentText);
@@ -188,12 +182,12 @@ async function handleInteraction(sourceType, target, originalEvent) {
 
         if (currentText !== originalText) {
             DomObserver.writeText(inputEl, currentText);
-            
+
             if (settings.settings.debugMode) {
                 DomObserver.highlight(inputEl, "#10b981", 1000);
             }
         }
-        
+
         StorageManager.updateStats(statsDiff);
 
         setTimeout(() => {

@@ -4,6 +4,8 @@
 import { StorageManager } from '../utils/storage.js';
 import { MODULES_UI } from '../utils/modules.js';
 import { Logger } from '../utils/logger.js';
+import { initSubscriptionsUI, getSubscriptionWordEntries } from './subscriptionsUi.js';
+import { PatternValidator } from '../modules/patternValidator.js';
 
 // modal helpers
 const Modal = {
@@ -91,6 +93,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     Logger.init(settingsData);
 
+    let effectiveData = await StorageManager.getEffectiveSettings();
+    let subscriptionEntries = await getSubscriptionWordEntries();
+
+    const escHtml = (str) => {
+        const div = document.createElement('div');
+        div.textContent = String(str ?? '');
+        return div.innerHTML;
+    };
+    const lockedSettings = () => (effectiveData.overrides && effectiveData.overrides.config.settings) || {};
+    const lockedModules = () => (effectiveData.overrides && effectiveData.overrides.config.modules) || {};
+    const lockBadgeHTML = () => {
+        const o = effectiveData.overrides;
+        return `<span class="locked-badge" title="Managed by the subscription '${escHtml(o.providerName)}' (${escHtml(o.providerHost)}). Disable 'Apply Settings' on that subscription to regain control.">🔒 Managed by ${escHtml(o.providerName)}</span>`;
+    };
+    function setRowLock(inputEl, isLocked) {
+        if (!inputEl) return;
+        inputEl.disabled = isLocked;
+        const row = inputEl.closest('.setting-row') || inputEl.closest('.card');
+        const h3 = row ? row.querySelector('h3') : null;
+        if (!h3) return;
+        const existing = h3.querySelector('.locked-badge');
+        if (isLocked && !existing) h3.insertAdjacentHTML('beforeend', lockBadgeHTML());
+        if (!isLocked && existing) existing.remove();
+    }
+
     // version badge
     try {
         const manifest = chrome.runtime.getManifest();
@@ -126,14 +153,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderModulesGrid() {
         if (!modulesGrid) return;
         modulesGrid.innerHTML = '';
-        const isGlobalOn = settingsData.settings.enabled;
+        const isGlobalOn = effectiveData.settings.enabled;
+        const modLocks = lockedModules();
         MODULES_UI.forEach(mod => {
-            const isModOn = settingsData.modules[mod.id];
+            const isModOn = effectiveData.modules[mod.id];
+            const isLocked = mod.id in modLocks;
             let stateClass = !isGlobalOn ? 'disabled-view' : (isModOn ? 'active' : 'inactive');
             const card = document.createElement('div');
-            card.className = `module-card ${stateClass}`;
-            card.innerHTML = `<span class="module-icon">${mod.icon}</span><span class="module-label">${mod.label}</span>`;
+            card.className = `module-card ${stateClass}${isLocked ? ' locked' : ''}`;
+            if (isLocked && effectiveData.overrides) {
+                card.title = `Managed by '${effectiveData.overrides.providerName}' (${effectiveData.overrides.providerHost})`;
+            }
+            card.innerHTML = `<span class="module-icon">${mod.icon}</span><span class="module-label">${mod.label}</span>${isLocked ? '<span class="module-lock">🔒</span>' : ''}`;
             card.addEventListener('click', async () => {
+                if (isLocked) return;
                 if (!isGlobalOn) {
                     settingsData.settings.enabled = true;
                     for (let key in settingsData.modules) settingsData.modules[key] = false;
@@ -150,9 +183,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const renderMainToggles = () => {
-        optEnabled.checked = settingsData.settings.enabled;
-        optDebug.checked = settingsData.settings.debugMode;
-        optPeekMode.checked = settingsData.settings.peekMode;
+        const locks = lockedSettings();
+
+        optEnabled.checked = effectiveData.settings.enabled;
+        optDebug.checked = effectiveData.settings.debugMode;
+        optPeekMode.checked = effectiveData.settings.peekMode;
+        setRowLock(optEnabled, 'enabled' in locks);
+        setRowLock(optDebug, 'debugMode' in locks);
+        setRowLock(optPeekMode, 'peekMode' in locks);
+
+        const radioStrict = document.getElementById('modeStrict');
+        const radioDev = document.getElementById('modeDev');
+        const profileLocked = 'usageProfile' in locks;
+        if (radioStrict && radioDev) {
+            if (effectiveData.settings.usageProfile === 'strict') radioStrict.checked = true; else radioDev.checked = true;
+            radioStrict.disabled = profileLocked;
+            radioDev.disabled = profileLocked;
+            setRowLock(radioStrict, profileLocked);
+            document.querySelectorAll('.mode-card').forEach(c => c.classList.toggle('locked', profileLocked));
+        }
+
+        const pruneInput = document.getElementById('vaultPruneDays');
+        if (pruneInput) {
+            const pruneLocked = 'vaultPruneDays' in locks;
+            pruneInput.disabled = pruneLocked;
+            pruneInput.value = pruneLocked
+                ? effectiveData.settings.vaultPruneDays
+                : (settingsData.settings.vaultPruneDays || 30);
+
+            const pruneLabel = pruneInput.closest('.prune-label');
+            if (pruneLabel) {
+                const existing = pruneLabel.querySelector('.locked-badge');
+                if (pruneLocked && !existing) pruneLabel.insertAdjacentHTML('beforeend', lockBadgeHTML());
+                if (!pruneLocked && existing) existing.remove();
+            }
+        }
+
         renderModulesGrid();
     };
     renderMainToggles();
@@ -168,10 +234,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     optDebug.addEventListener('change', () => { settingsData.settings.debugMode = optDebug.checked; save(); });
     optPeekMode.addEventListener('change', () => { settingsData.settings.peekMode = optPeekMode.checked; save(); });
 
-    // mode switch (strict / dev)
     const modeStrict = document.getElementById('modeStrict');
     const modeDev = document.getElementById('modeDev');
-    if (settingsData.settings.usageProfile === 'strict') modeStrict.checked = true; else modeDev.checked = true;
     const handleMode = (e) => { if (e.target.checked) { settingsData.settings.usageProfile = e.target.value; save(); } };
     modeStrict.addEventListener('change', handleMode);
     modeDev.addEventListener('change', handleMode);
@@ -204,6 +268,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderDictionary();
     });
 
+    const dictSourceFilterEl = document.getElementById('dictSourceFilter');
+    const dictSubFilterEl = document.getElementById('dictSubFilter');
+    let dictSourceFilterValue = 'all';
+    let dictSubFilterValue = 'all';
+
+    function populateSubFilter() {
+        const seen = new Map();
+        subscriptionEntries.forEach(e => seen.set(e.subId, e.subName));
+        const current = dictSubFilterEl.value;
+        dictSubFilterEl.innerHTML = '<option value="all">All Subscriptions</option>';
+        for (const [id, name] of seen) {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = name;
+            dictSubFilterEl.appendChild(opt);
+        }
+        dictSubFilterEl.value = [...seen.keys()].includes(current) ? current : 'all';
+        dictSubFilterValue = dictSubFilterEl.value;
+    }
+
+    dictSourceFilterEl.addEventListener('change', () => {
+        dictSourceFilterValue = dictSourceFilterEl.value;
+        dictSubFilterEl.classList.toggle('hidden', dictSourceFilterValue !== 'subscriptions');
+        dictSubFilterValue = 'all';
+        dictSubFilterEl.value = 'all';
+        dictCurrentPage = 1;
+        renderDictionary();
+    });
+
+    dictSubFilterEl.addEventListener('change', () => {
+        dictSubFilterValue = dictSubFilterEl.value;
+        dictCurrentPage = 1;
+        renderDictionary();
+    });
+
     dictPrevBtn.addEventListener('click', () => { if (dictCurrentPage > 1) { dictCurrentPage--; renderDictionary(); } });
     dictNextBtn.addEventListener('click', () => { dictCurrentPage++; renderDictionary(); });
 
@@ -219,18 +318,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateDictBulkUI();
         checkAllDict.checked = false;
 
-        let list = settingsData.customWords || [];
-
-        if (dictSearchQuery) {
-            list = list.filter(w => w.toLowerCase().includes(dictSearchQuery));
+        let entries = [];
+        if (dictSourceFilterValue !== 'subscriptions') {
+            entries = (settingsData.customWords || []).map(w => ({ word: w, source: 'local', subId: null, subName: null }));
+        }
+        if (dictSourceFilterValue !== 'local') {
+            let subEntries = subscriptionEntries;
+            if (dictSourceFilterValue === 'subscriptions' && dictSubFilterValue !== 'all') {
+                subEntries = subEntries.filter(e => e.subId === dictSubFilterValue);
+            }
+            entries = entries.concat(subEntries.map(e => ({ word: e.word, source: 'sub', subId: e.subId, subName: e.subName })));
         }
 
-        list = [...list].sort((a, b) => {
-            const comp = a.localeCompare(b);
+        if (dictSearchQuery) {
+            entries = entries.filter(e => e.word.toLowerCase().includes(dictSearchQuery));
+        }
+
+        entries.sort((a, b) => {
+            const comp = a.word.localeCompare(b.word);
             return dictSortDir === 'asc' ? comp : -comp;
         });
 
-        if (list.length === 0) {
+        if (entries.length === 0) {
             wordListContainer.innerHTML = dictSearchQuery
                 ? '<div class="empty-state">No entries match your search.</div>'
                 : '<div class="empty-state">No custom entries defined yet.</div>';
@@ -241,33 +350,44 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        const totalPages = Math.ceil(list.length / DICT_ITEMS_PER_PAGE);
+        const totalPages = Math.ceil(entries.length / DICT_ITEMS_PER_PAGE);
         if (dictCurrentPage > totalPages) dictCurrentPage = totalPages;
 
         dictPageInfo.textContent = `Page ${dictCurrentPage} of ${totalPages}`;
         dictPrevBtn.disabled = dictCurrentPage === 1;
         dictNextBtn.disabled = dictCurrentPage === totalPages;
 
-        const paginatedList = list.slice((dictCurrentPage - 1) * DICT_ITEMS_PER_PAGE, dictCurrentPage * DICT_ITEMS_PER_PAGE);
+        const paginatedList = entries.slice((dictCurrentPage - 1) * DICT_ITEMS_PER_PAGE, dictCurrentPage * DICT_ITEMS_PER_PAGE);
 
         const fragment = document.createDocumentFragment();
 
-        paginatedList.forEach(word => {
+        paginatedList.forEach(entry => {
+            const word = entry.word;
             const row = document.createElement('div');
-            row.className = 'list-item';
+            row.className = `list-item${entry.source === 'sub' ? ' sub-entry' : ''}`;
 
             const isRegex = /^\/(.+)\/[a-z]*$/.test(word);
-            let displayHTML = word;
+            let displayHTML = escHtml(word);
 
             if (isRegex) {
                 const match = word.match(/^\/(.+)\/([a-z]*)$/);
                 const pattern = match ? match[1] : word;
-                const flags = match && match[2] ? ` <span class="regex-flags">/${match[2]}</span>` : '';
-                displayHTML = `<code class="regex-code">${pattern}${flags}</code><span class="badge badge-regex">REGEX</span>`;
+                const flags = match && match[2] ? ` <span class="regex-flags">/${escHtml(match[2])}</span>` : '';
+                displayHTML = `<code class="regex-code">${escHtml(pattern)}${flags}</code><span class="badge badge-regex">REGEX</span>`;
+            }
+
+            if (entry.source === 'sub') {
+                displayHTML += `<span class="badge badge-source" title="Provided by subscription - read-only. Manage it in the Subscriptions tab.">${escHtml(entry.subName)}</span>`;
+                row.innerHTML = `
+                    <div class="col-check"></div>
+                    <span class="item-word col-1">${displayHTML}</span>
+                    <div class="item-actions"><span class="sub-readonly" title="Read-only subscription entry">🔒</span></div>`;
+                fragment.appendChild(row);
+                return;
             }
 
             row.innerHTML = `
-                <div class="col-check"><input type="checkbox" class="item-check" value="${word}"></div>
+                <div class="col-check"><input type="checkbox" class="item-check" value="${escHtml(word)}"></div>
                 <span class="item-word col-1">${displayHTML}</span>
                 <div class="item-actions">
                     <button class="action-icon-btn edit" title="Edit">✎</button>
@@ -354,6 +474,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const isRegex = /^\/(.+)\/[a-z]*$/.test(word);
             const displayPattern = isRegex ? word.match(/^\/(.+)\/[a-z]*$/)[1] : word;
 
+            // regex entries pass the same safety pipeline as subscription
+            // feeds: invalid or ReDoS-prone patterns are rejected up front
+            if (isRegex) {
+                const parts = word.match(/^\/(.+)\/([a-z]*)$/);
+                const verdict = PatternValidator.checkPattern(parts[1], parts[2]);
+                if (!verdict.ok) {
+                    showDictFeedback(`Rejected: ${verdict.reason}`);
+                    return;
+                }
+            }
+
             const exists = settingsData.customWords.some(w => w.toLowerCase() === word.toLowerCase());
             if (!exists) {
                 settingsData.customWords.push(word);
@@ -378,7 +509,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     renderDictionary();
+    populateSubFilter();
 
+    const refreshSubscriptionViews = async () => {
+        effectiveData = await StorageManager.getEffectiveSettings();
+        subscriptionEntries = await getSubscriptionWordEntries();
+        populateSubFilter();
+        renderMainToggles();
+        renderDictionary();
+    };
+
+    const subscriptionsUI = initSubscriptionsUI({ settingsData, save, onDataChanged: refreshSubscriptionViews });
+
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.addListener(async (changes, namespace) => {
+            if ((namespace === 'local' && changes.subscriptionData) ||
+                (namespace === 'sync' && changes.subscriptions)) {
+                await refreshSubscriptionViews();
+                subscriptionsUI.render();
+            }
+        });
+    }
 
     // statistics logic
     const btnClearStats = document.getElementById('btnClearStats');
@@ -446,7 +597,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // vault logic
     const vaultPruneDaysInput = document.getElementById('vaultPruneDays');
     if (vaultPruneDaysInput) {
-        vaultPruneDaysInput.value = settingsData.settings.vaultPruneDays || 30;
         vaultPruneDaysInput.addEventListener('change', async (e) => {
             let val = parseInt(e.target.value, 10);
             if (isNaN(val) || val < 1) { val = 1; e.target.value = 1; }

@@ -428,7 +428,8 @@ input:checked+.mode-card {
   box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
 }
 
-#dictAddBtn {
+#dictAddBtn,
+#subAddBtn {
   padding: 0 30px;
   background: var(--accent);
   color: white;
@@ -440,7 +441,8 @@ input:checked+.mode-card {
   font-size: 1rem;
 }
 
-#dictAddBtn:hover {
+#dictAddBtn:hover,
+#subAddBtn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 15px var(--accent);
 }
@@ -970,7 +972,6 @@ input[type="checkbox"] {
   color: var(--danger);
 }
 
-/* Regex Badge Styling */
 .badge-regex {
   font-size: 10px;
   background: rgba(255, 255, 255, 0.05);
@@ -978,7 +979,7 @@ input[type="checkbox"] {
   color: var(--text-muted);
   padding: 2px 6px;
   border-radius: 4px;
-  margin-left: 8px; /* changed from right to left since badge will be on the right */
+  margin-left: 8px;
   display: inline-block;
   vertical-align: middle;
 }
@@ -993,7 +994,6 @@ input[type="checkbox"] {
   opacity: 0.5;
 }
 
-/* Vault Header UI */
 .vault-header-actions {
   display: flex;
   gap: 10px;
@@ -1015,4 +1015,394 @@ input[type="checkbox"] {
   padding: 6px 8px;
   text-align: center;
   font-size: 0.9rem;
+}
+
+.dict-filter-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.filter-select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: inherit;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.filter-select:focus {
+  border-color: var(--accent);
+}
+
+.filter-select option {
+  background: #1e293b;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--text-muted);
+}
+
+.status-dot.ok {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+.status-dot.error {
+  background: var(--danger);
+  box-shadow: 0 0 6px var(--danger);
+}
+
+.badge-source {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  padding: 1px 7px;
+  font-size: 0.68rem;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.list-item.sub-entry {
+  opacity: 0.85;
+}
+
+.sub-readonly {
+  opacity: 0.6;
+  font-size: 0.8rem;
+}
+
+.locked-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 6px;
+  padding: 1px 8px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  margin-left: 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.module-card.locked,
+.mode-card.locked {
+  opacity: 0.6;
+  pointer-events: auto;
+  cursor: not-allowed;
+}
+
+.module-lock {
+  margin-left: auto;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.sub-modal-body {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.sub-modal-body p {
+  margin-bottom: 10px;
+}
+
+.sub-config-list {
+  list-style: none;
+  margin: 10px 0;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.sub-config-list li {
+  padding: 3px 0;
+  font-size: 0.85rem;
+}
+
+.sub-modal-note {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.sub-global-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.toggle-switch-sm {
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle-switch-sm .slider:before {
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+}
+
+.toggle-switch-sm input:checked+.slider:before {
+  transform: translateX(20px);
+}
+
+#subscriptionListContainer.subs-paused .sub-item {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+#subFeedbackMsg {
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+
+
+.toggle-switch input:disabled+.slider {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.sub-item {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  transition: border-color 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
+}
+
+.sub-item:hover {
+  border-color: rgba(59, 130, 246, 0.35);
+  transform: translateY(-1px);
+}
+
+.sub-item.sub-disabled .sub-avatar,
+.sub-item.sub-disabled .sub-item-titles,
+.sub-item.sub-disabled .sub-desc,
+.sub-item.sub-disabled .sub-chips,
+.sub-item.sub-disabled .sub-footer {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+
+.sub-item.sub-error {
+  border-left: 3px solid var(--danger);
+}
+
+.sub-item-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sub-avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.06));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.sub-avatar .status-dot {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid #1e293b;
+}
+
+.sub-item-titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sub-item-titles strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-host {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-family: monospace;
+}
+
+.sub-item-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sub-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: 0.2s;
+}
+
+.sub-icon-btn:hover {
+  color: white;
+  border-color: var(--accent);
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.sub-icon-btn.danger:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.sub-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sub-icon-btn.spinning {
+  animation: sub-spin 0.8s linear infinite;
+}
+
+@keyframes sub-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sub-desc {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 0.83rem;
+  line-height: 1.45;
+}
+
+.sub-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.sub-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sub-chip.accent {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: var(--accent);
+}
+
+.sub-chip.warn {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+}
+
+.sub-chip.danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--danger);
+}
+
+.sub-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.sub-footer-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.sub-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.sub-toggle:hover {
+  color: white;
+}
+
+.sub-toggle input:disabled {
+  cursor: not-allowed;
+}
+
+.sub-sync-time {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.sub-global-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+button.sub-chip {
+  cursor: pointer;
+  font-family: inherit;
+  transition: 0.2s;
+}
+
+button.sub-chip:hover {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.2);
 }

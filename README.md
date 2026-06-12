@@ -14,7 +14,7 @@
     <a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
     <img src="https://img.shields.io/badge/Status-Active_Development-orange.svg" alt="Status">
     <img src="https://img.shields.io/badge/Platform-Chromium-lightgrey.svg" alt="Platform">
-    <img src="https://img.shields.io/badge/Version-v1.4.2-brightgreen.svg" alt="Version">
+    <img src="https://img.shields.io/badge/Version-v1.5.0-brightgreen.svg" alt="Version">
   </p>
 </div>
 
@@ -34,7 +34,7 @@ Many companies and individuals hesitate to use tools like ChatGPT, Claude, Gemin
 
 * **PII Detection:** Automatically detects and masks emails, phone numbers, IBANs, file paths, URLs, IP addresses, secrets and more.
 * **Smart Developer Mode:** Switch between 'Strict' mode (masks everything) and 'Developer' mode (smartly ignores safe programming variables like `localhost`, `10.x.x.x` private network ranges, or standard paths like `./node_modules/` to avoid breaking system code inputs).
-* **Custom Dictionaries & Regex:** Define your own "forbidden words" (e.g., internal project names like `Project Apollo`) that get replaced with placeholders (`[CUSTOM_1]`). You can also specify powerful custom regex patterns directly in the UI by wrapping your regex in forward slashes (e.g., `/EMP-\d{4}/`).
+* **Custom Dictionaries & Regex:** Define your own "forbidden words" (e.g., internal project names like `Project Apollo`) that get replaced with placeholders (`[CUSTOM_1]`). You can also specify powerful custom regex patterns directly in the UI by wrapping your regex in forward slashes (e.g., `/EMP-\d{4}/`). The flags `i`, `m`, `s` and `u` are respected per pattern — without flags, matching is **case-insensitive by default** (safer for masking); write any flag set without `i` (e.g. `/Foo/m`) to match case-sensitively. Invalid or ReDoS-prone patterns (like `(a+)+`) are rejected when you add them.
 * **Local Processing:** All logic runs completely native within your browser. No data is sent to any 3rd party server for verification.
 
 ### ⚡ 2. Token Optimization (TOON)
@@ -51,7 +51,15 @@ Many companies and individuals hesitate to use tools like ChatGPT, Claude, Gemin
 * **Smart Copy:** Don't worry about trying to extract information! Just highlight the LLM's text and copy it normally (`Ctrl+C` or `Cmd+C`). AIgis seamlessly intercepts the system's copy pipeline, unmasks the placeholders, natively decodes any TOON blocks to JSON, and injects the raw, safe data straight to your clipboard!
 * **Context Menus:** Features a built-in *Right-Click -> Decode TOON to Clipboard* tool! If the LLM generates raw TOON syntax and misses the auto-decoder, simply highlight the block and right-click to natively restore the JSON to your clipboard!
 
-### 🛡️ 4. Secure Vault & Local Storage
+### 🔔 4. PII & Config Subscriptions (Teams & Enterprise)
+
+* **Remote Rulesets:** Subscribe to HTTPS-hosted JSON feeds containing shared custom wordlists and configuration templates — ideal for teams enforcing common masking rules. See [`subscription-sample.json`](subscription-sample.json) for the fully documented feed format.
+* **Strictly One-Way:** AIgis only *pulls* feeds (plain GET, no credentials, no local data ever attached). Feeds are cached locally, refreshed daily (with ETag support and offline fallback), and can be updated manually anytime.
+* **Managed Settings with Consent:** A feed may provide settings overrides ("Apply Settings"). These are applied as a non-destructive overlay — your own settings stay saved and return when you unsubscribe. Every config (and every remote config *change*) must be explicitly confirmed before it takes effect, and managed settings are clearly badged with `🔒 Managed by [Feed]` in the dashboard.
+* **ReDoS-Hardened Regex:** Feed regex patterns are only executed if you mark the source as trusted — and even then each pattern passes a validation pipeline (compile check, length cap, catastrophic-backtracking heuristic). Untrusted feeds get their patterns neutralized to literal text. Rejected patterns are surfaced in the UI.
+* **Unified Dictionary View:** Subscription words appear alongside your local custom words (badged, read-only) with source filtering. Deleting a subscription optionally imports its words into your local list.
+
+### 🛡️ 5. Secure Vault & Local Storage
 
 * **Local-First Architecture:** AIgis operates without external servers. Your secure mapping Vault (which links generic Placeholders back to their real PII strings) is stored strictly and persistently inside your browser's native local storage.
 * **Auto-Pruning & Expiration:** The Vault features a configurable auto-pruning mechanism. Mappings are assigned an automatic time-to-live (default 30 days) ensuring that old, stale context data is silently and permanently destroyed to reduce forensic risk. You can effortlessly track and individually renew or change these expirations through the Dashboard.

@@ -3,50 +3,52 @@
  * Manages settings, statistics, and the PII vault (secure cache).
  */
 import { Logger } from './logger.js';
+import { SubscriptionSchema } from '../modules/subscriptions/subscriptionSchema.js';
 
 export const StorageManager = {
-    
+
     defaults: {
         settings: {
             enabled: true,
             debugMode: false,
             usageProfile: 'strict',
             peekMode: false,
-            vaultPruneDays: 30
+            vaultPruneDays: 30,
+            subscriptionsEnabled: true
         },
         modules: {
-            email: true, 
-            iban: true, 
-            phone: true, 
+            email: true,
+            iban: true,
+            phone: true,
             address: true,
-            url: true, 
-            ip: true, 
-            path: true, 
+            url: true,
+            ip: true,
+            path: true,
             secret: true,
-            custom: true, 
+            custom: true,
             toon: true
         },
         customWords: [],
         stats: {
             totalPrompts: 0,
             piiTotal: 0,
-            piiBreakdown: { 
-                email: 0, 
-                iban: 0, 
-                phone: 0, 
+            piiBreakdown: {
+                email: 0,
+                iban: 0,
+                phone: 0,
                 address: 0,
-                url: 0, 
-                ip: 0, 
-                path: 0, 
+                url: 0,
+                ip: 0,
+                path: 0,
                 secret: 0,
-                custom: 0, 
-                other: 0 
+                custom: 0,
+                other: 0
             },
-            toon: { 
-                conversions: 0, 
-                originalChars: 0, 
-                optimizedChars: 0, 
-                estimatedTokensSaved: 0 
+            toon: {
+                conversions: 0,
+                originalChars: 0,
+                optimizedChars: 0,
+                estimatedTokensSaved: 0
             }
         },
         vault: {
@@ -77,8 +79,192 @@ export const StorageManager = {
             if (data.settings) toSave.settings = data.settings;
             if (data.modules) toSave.modules = data.modules;
             if (data.customWords) toSave.customWords = data.customWords;
-            chrome.storage.sync.set(toSave, resolve);
+            chrome.storage.sync.set(toSave, () => {
+                if (chrome.runtime && chrome.runtime.lastError) {
+                    Logger.error('Saving settings failed:', chrome.runtime.lastError.message);
+                    return resolve({ error: chrome.runtime.lastError.message });
+                }
+                resolve({});
+            });
         });
+    },
+
+    _normalizeSubscription(sub) {
+        return {
+            id: sub.id,
+            name: sub.name || 'Unnamed',
+            description: sub.description || '',
+            url: sub.url,
+            enabled: sub.enabled !== false,
+            applyConfig: !!sub.applyConfig,
+            allowRegex: !!sub.allowRegex,
+            lastUpdated: sub.lastUpdated || null,
+            lastStatus: sub.lastStatus || 'pending',
+            lastError: sub.lastError || null,
+            etag: sub.etag || null,
+            acceptedConfigHash: sub.acceptedConfigHash || null,
+            rejectedPatterns: sub.rejectedPatterns || 0
+        };
+    },
+
+    async getSubscriptions() {
+        return new Promise((resolve) => {
+            if (typeof chrome === 'undefined' || !chrome.storage) return resolve([]);
+            chrome.storage.sync.get(['subscriptions'], (result) => {
+                const list = Array.isArray(result.subscriptions) ? result.subscriptions : [];
+                resolve(list.filter(s => s && s.id && s.url).map(s => this._normalizeSubscription(s)));
+            });
+        });
+    },
+
+    async saveSubscriptions(subscriptions) {
+        return new Promise((resolve) => {
+            if (typeof chrome === 'undefined' || !chrome.storage) return resolve();
+            chrome.storage.sync.set({ subscriptions }, () => {
+                if (chrome.runtime && chrome.runtime.lastError) {
+                    // surface quota errors instead of failing silently (Plan §5)
+                    Logger.error('Saving subscriptions failed:', chrome.runtime.lastError.message);
+                    return resolve({ error: chrome.runtime.lastError.message });
+                }
+                resolve({});
+            });
+        });
+    },
+
+    async addSubscription({ url, allowRegex = false }) {
+        if (typeof url !== 'string' || !url.trim().toLowerCase().startsWith('https://')) {
+            return { error: 'Subscription URLs must use HTTPS.' };
+        }
+        const subscriptions = await this.getSubscriptions();
+        const trimmedUrl = url.trim();
+        if (subscriptions.some(s => s.url === trimmedUrl)) {
+            return { error: 'This URL is already subscribed.' };
+        }
+        const sub = this._normalizeSubscription({
+            id: crypto.randomUUID(),
+            name: 'Pending first sync…',
+            url: trimmedUrl,
+            enabled: true,
+            applyConfig: false,
+            allowRegex: !!allowRegex
+        });
+        subscriptions.push(sub);
+        const res = await this.saveSubscriptions(subscriptions);
+        if (res && res.error) return { error: res.error };
+        return { subscription: sub };
+    },
+
+    async importSubscriptions(entries) {
+        const subscriptions = await this.getSubscriptions();
+        let added = 0;
+
+        for (const entry of entries) {
+            if (!entry || typeof entry.url !== 'string') continue;
+            const url = entry.url.trim();
+            if (!url.toLowerCase().startsWith('https://')) continue;
+            if (subscriptions.some(s => s.url === url)) continue;
+
+            subscriptions.push(this._normalizeSubscription({
+                id: crypto.randomUUID(),
+                name: 'Pending first sync…',
+                url,
+                enabled: entry.enabled !== false,
+                applyConfig: false,
+                allowRegex: false
+            }));
+            added++;
+        }
+
+        if (added > 0) {
+            await this.saveSubscriptions(subscriptions);
+            Logger.info(`Import: ${added} subscription(s) added (consent flags reset).`);
+        }
+        return added;
+    },
+
+    async updateSubscription(id, patch) {
+        const subscriptions = await this.getSubscriptions();
+        const idx = subscriptions.findIndex(s => s.id === id);
+        if (idx === -1) return null;
+        subscriptions[idx] = this._normalizeSubscription({ ...subscriptions[idx], ...patch, id });
+        await this.saveSubscriptions(subscriptions);
+        return subscriptions[idx];
+    },
+
+    async removeSubscription(id, { importWords = false } = {}) {
+        const subscriptions = await this.getSubscriptions();
+        const data = await this.getSubscriptionData();
+
+        if (importWords && data[id] && Array.isArray(data[id].customWords) && data[id].customWords.length > 0) {
+            const settings = await this.getSettings();
+            const merged = new Set([...settings.customWords, ...data[id].customWords]);
+            settings.customWords = Array.from(merged);
+            await this.saveSettings(settings);
+        }
+
+        delete data[id];
+        await this.saveSubscriptionData(data);
+        await this.saveSubscriptions(subscriptions.filter(s => s.id !== id));
+    },
+
+    async getSubscriptionData() {
+        return new Promise((resolve) => {
+            if (typeof chrome === 'undefined' || !chrome.storage) return resolve({});
+            chrome.storage.local.get(['subscriptionData'], (result) => {
+                resolve(result.subscriptionData || {});
+            });
+        });
+    },
+
+    async saveSubscriptionData(map) {
+        return new Promise((resolve) => {
+            if (typeof chrome === 'undefined' || !chrome.storage) return resolve();
+            chrome.storage.local.set({ subscriptionData: map }, resolve);
+        });
+    },
+
+    async getEffectiveSettings() {
+        const base = await this.getSettings();
+        const result = { ...base, overrides: null };
+
+        if (base.settings.subscriptionsEnabled === false) return result;
+
+        const subscriptions = await this.getSubscriptions();
+        const provider = subscriptions.find(s => s.enabled && s.applyConfig);
+        if (!provider) return result;
+
+        const data = await this.getSubscriptionData();
+        const cache = data[provider.id];
+        if (!cache || !cache.config) return result;
+
+        const hash = await SubscriptionSchema.hashConfig(cache.config);
+        if (!hash || hash !== provider.acceptedConfigHash) {
+            Logger.info(`Overlay: config of '${provider.name}' is unconfirmed, not applied.`);
+            return result;
+        }
+
+        result.settings = { ...base.settings, ...(cache.config.settings || {}) };
+        result.modules = { ...base.modules, ...(cache.config.modules || {}) };
+
+        let providerHost = '';
+        try { providerHost = new URL(provider.url).hostname; } catch (e) { /* display-only */ }
+
+        result.overrides = {
+            providerId: provider.id,
+            providerName: provider.name,
+            providerHost,
+            config: cache.config
+        };
+
+        if (Logger.isDebug) {
+            const keys = [
+                ...Object.keys(cache.config.settings || {}).map(k => `settings.${k}`),
+                ...Object.keys(cache.config.modules || {}).map(k => `modules.${k}`)
+            ];
+            Logger.info(`Overlay: '${provider.name}' overrides [${keys.join(', ')}].`);
+        }
+
+        return result;
     },
 
     // statistics in local storage
@@ -123,10 +309,10 @@ export const StorageManager = {
             stats.toon.conversions = (stats.toon.conversions || 0) + 1;
             stats.toon.originalChars = (stats.toon.originalChars || 0) + (diff.charsOriginal || 0);
             stats.toon.optimizedChars = (stats.toon.optimizedChars || 0) + (diff.charsOptimized || 0);
-            
+
             stats.toon.estimatedTokensSaved = (stats.toon.estimatedTokensSaved || 0) + Math.round(diff.toonSavings / 2.5);
         }
-        
+
         return new Promise((resolve) => chrome.storage.local.set({ stats }, resolve));
     },
 
@@ -174,7 +360,7 @@ export const StorageManager = {
 
     async removeVaultItems(placeholdersArray) {
         const vault = await this.getVault();
-        
+
         placeholdersArray.forEach(ph => {
             const entry = vault.mappings[ph];
             if (entry) {
@@ -206,7 +392,7 @@ export const StorageManager = {
             expiresAt: Date.now() + (pruneDays * 24 * 60 * 60 * 1000)
         };
         vault.reverseIndex[originalValue] = placeholder;
-        
+
         const match = placeholder.match(/_(\d+)\]$/);
         if (match && type) {
             const num = parseInt(match[1], 10);
@@ -253,10 +439,10 @@ export const StorageManager = {
         const current = vault.counters[type] || 0;
         return current + 1;
     },
-    
-    // import/export
+
     async exportConfig() {
         const settings = await this.getSettings();
+        const subscriptions = await this.getSubscriptions();
         const exportObj = {
             meta: { app: "AIgis", type: "configuration", version: chrome.runtime.getManifest().version, date: new Date().toISOString() },
             config: {
@@ -264,10 +450,12 @@ export const StorageManager = {
                 usageProfile: settings.settings.usageProfile,
                 peekMode: settings.settings.peekMode,
                 debugMode: settings.settings.debugMode,
-                modules: settings.modules
+                subscriptionsEnabled: settings.settings.subscriptionsEnabled,
+                modules: settings.modules,
+                subscriptions: subscriptions.map(s => ({ url: s.url, enabled: s.enabled }))
             }
         };
-        this._downloadJson(exportObj, `AIgis-Configuration-${new Date().toISOString().slice(0,10)}.json`);
+        this._downloadJson(exportObj, `AIgis-Configuration-${new Date().toISOString().slice(0, 10)}.json`);
     },
 
     async exportDictionary() {
@@ -276,7 +464,7 @@ export const StorageManager = {
             meta: { app: "AIgis", type: "dictionary", version: chrome.runtime.getManifest().version, date: new Date().toISOString() },
             customWords: settings.customWords || []
         };
-        this._downloadJson(exportObj, `AIgis-Dictionary-${new Date().toISOString().slice(0,10)}.json`);
+        this._downloadJson(exportObj, `AIgis-Dictionary-${new Date().toISOString().slice(0, 10)}.json`);
     },
 
     async exportVault() {
@@ -285,7 +473,7 @@ export const StorageManager = {
             meta: { app: "AIgis", type: "vault", version: chrome.runtime.getManifest().version, date: new Date().toISOString() }, // Type: vault
             mappings: vault.mappings
         };
-        this._downloadJson(exportObj, `AIgis-Vault-${new Date().toISOString().slice(0,10)}.json`);
+        this._downloadJson(exportObj, `AIgis-Vault-${new Date().toISOString().slice(0, 10)}.json`);
     },
 
     _downloadJson(obj, filename) {
@@ -310,9 +498,14 @@ export const StorageManager = {
             if (data.meta.type === "configuration") {
                 const settings = await this.getSettings();
                 if (data.config) {
-                    settings.settings = { ...settings.settings, ...data.config };
-                    if (data.config.modules) settings.modules = { ...settings.modules, ...data.config.modules };
+                    const { modules, subscriptions, ...settingKeys } = data.config;
+                    settings.settings = { ...settings.settings, ...settingKeys };
+                    if (modules) settings.modules = { ...settings.modules, ...modules };
                     await this.saveSettings(settings);
+
+                    if (Array.isArray(subscriptions)) {
+                        await this.importSubscriptions(subscriptions);
+                    }
                 }
                 return "configuration";
             } else if (data.meta.type === "dictionary") {
@@ -330,19 +523,19 @@ export const StorageManager = {
                 if (data.mappings) {
                     const vault = await this.getVault();
                     vault.mappings = { ...vault.mappings, ...data.mappings };
-                    
+
                     for (const [ph, entry] of Object.entries(data.mappings)) {
                         let original = entry;
                         let expiresAt = Date.now() + (30 * 24 * 60 * 60 * 1000);
-                        
+
                         if (typeof entry === 'object' && entry.val) {
                             original = entry.val;
                             expiresAt = entry.expiresAt || expiresAt;
                         }
-                        
+
                         vault.mappings[ph] = { val: original, expiresAt };
                         vault.reverseIndex[original] = ph;
-                        
+
                         const typeMatch = ph.match(/\[([A-Z_]+)_(\d+)\]/);
                         if (typeMatch) {
                             const type = typeMatch[1];

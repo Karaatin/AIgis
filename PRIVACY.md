@@ -1,6 +1,6 @@
 # AIgis Privacy Policy
 
-*Last Updated: April 2026*
+*Last Updated: June 2026*
 
 AIgis ("we", "our", or "us") is an open-source browser extension designed from the ground up to protect your privacy and secure your interactions with large language models (LLMs). This Privacy Policy explains how our extension operates and clearly outlines our strict zero-data-collection infrastructure.
 
@@ -12,6 +12,7 @@ AIgis operates 100% locally within your web browser. There are no external serve
 The core function of AIgis is to intercept your text input, mask sensitive information, and decode responses.
 * **Local Processing Only:** All text scanning, masking, and Token Optimization Object Notation (TOON) decoding happens exclusively in your browser's local memory.
 * **No Network Transmission:** The original sensitive data (PII, secrets, keys) that AIgis masks is **never** sent to the LLM (like ChatGPT or Claude) and is **never** sent to us. Only the sanitized, placeholder versions (e.g., `[EMAIL_1]`) leave your computer.
+* **Subscriptions Are Strictly One-Way (Optional Feature):** If you choose to subscribe to a remote ruleset feed, AIgis periodically *downloads* that JSON file from the HTTPS URL you provided — and nothing more. These requests are plain GET requests sent without credentials, without query parameters, and without any of your local data, settings, dictionary entries, or Vault contents attached. The feed operator can see only what any web server sees for any download: your IP address and the time of the request. If you do not add a subscription, AIgis makes no network requests at all (apart from the manual "Check for Updates" button, which queries the GitHub API).
 
 ## 3. Dual-Storage Architecture
 AIgis utilizes your browser's native storage APIs in a strict, split-architecture model to balance convenience with absolute security:
@@ -23,7 +24,9 @@ To function correctly, AIgis requests the following browser permissions:
 * **`activeTab` & `scripting`**: Required to read the text you type into chat boxes and to visually overlay the secure badges on the webpage.
 * **`storage`**: Required to save your settings and the local Vault mappings.
 * **`contextMenus`**: Required to add the right-click "Decode TOON to Clipboard" utility.
+* **`alarms`**: Required to schedule the periodic (daily) refresh of subscription feeds you have added. If you have no subscriptions, the alarm performs no work.
 * **Host Permissions (e.g., `https://chatgpt.com/*`)**: AIgis only runs on the specific, explicit LLM platforms listed in our manifest. It cannot and does not monitor your browsing activity on any other websites.
+* **Optional Host Permissions (Subscriptions)**: When you add a subscription feed, AIgis asks for permission for that specific origin only, at that moment. No broad host access is requested at install time, and removing the subscription removes any need for the permission.
 
 ## 5. Changes to This Policy
 Because AIgis is open-source and local-first, the fundamental nature of our zero-data infrastructure will not change. However, if we add new features that require additional permissions, we will update this policy accordingly.

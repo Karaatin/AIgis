@@ -153,11 +153,34 @@
             <div class="panel">
                 <div class="panel-header">
                     <div class="icon-badge">🔄</div>
-                    <h3>Import/Export Hub</h3>
+                    <h3>Share & Backup</h3>
                 </div>
                 <p>While your personal preferences automatically sync across your own devices via Chrome's native
-                    infrastructure, you can also manually export your AIgis configuration as JSON. Easily distribute
-                    organizational code-words and redaction lists to your entire team with a single click!
+                    infrastructure, you can also manually export your AIgis configuration as JSON — for backups or
+                    one-time sharing of code-words and redaction lists with your team.
+                </p>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="icon-badge">📋</div>
+                    <h3>Smart Copy</h3>
+                </div>
+                <p>Just copy the AI's answer like you always do (<code>Ctrl+C</code>). AIgis intercepts the copy
+                    pipeline, swaps placeholders back to your real data and decodes TOON blocks to clean JSON —
+                    so your clipboard always holds the usable, original text.
+                </p>
+            </div>
+
+            <div class="panel bento-large">
+                <div class="panel-header">
+                    <div class="icon-badge">🔔</div>
+                    <h3>Rule Subscriptions for Teams</h3>
+                </div>
+                <p>Keep entire teams in sync: host a ruleset once and let everyone subscribe to it. AIgis pulls the
+                    feed automatically (strictly one-way — nothing is ever sent back), keeps shared wordlists fresh
+                    and can even manage settings centrally, with every change requiring your explicit consent.
+                    Untrusted regex is neutralized and every pattern passes a ReDoS-safety validation pipeline.
                 </p>
             </div>
 
@@ -230,15 +253,34 @@
             </div>
         </div>
 
-        <div class="showcase-grid">
+        <div class="showcase-grid showcase-grid-reverse">
             <div class="showcase-img showcase-img-slider">
-                <img src="assets/statistics-dashboard.png" alt="Statistics Dashboard" class="showcase-img-cover">
+                <img src="assets/subscriptions-dashboard.png" alt="Subscriptions Dashboard" class="showcase-img-cover">
             </div>
+            <div>
+                <h3>Team Rule Subscriptions</h3>
+                <p>Host your organization's masking rules as a single JSON feed
+                    and let every team member subscribe with one link. AIgis refreshes feeds automatically, validates
+                    every pattern for safety, and can even centrally manage extension settings — always with the
+                    user's explicit consent, always strictly one-way.
+                </p>
+                <ul class="feature-list">
+                    <li>✓ Automatic daily updates with offline fallback</li>
+                    <li>✓ ReDoS-hardened pattern validation</li>
+                    <li>✓ Consent-based managed settings (🔒 badges)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="showcase-grid">
             <div>
                 <h3>Protection Statistics</h3>
                 <p>Track exactly how many tokens you've saved and monitor how many sensitive PII elements have been
                     intercepted in your chats over time. Your data stays completely local, but your privacy impact is
                     visualized beautifully.</p>
+            </div>
+            <div class="showcase-img showcase-img-slider">
+                <img src="assets/statistics-dashboard.png" alt="Statistics Dashboard" class="showcase-img-cover">
             </div>
         </div>
     </section>

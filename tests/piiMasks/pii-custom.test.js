@@ -99,4 +99,49 @@ describe('PII Mask Logic: Custom Dictionary', () => {
 
     });
 
+    describe('Per-pattern regex flags', () => {
+
+        it('should keep legacy case-insensitive default for /pattern/ without flags', () => {
+            const mask = new CustomMask(['/SECRET-\\d+/']);
+            const matches = Array.from(mask.find('found secret-42 here')).map(m => m[0]);
+            expect(matches).toContain('secret-42');
+        });
+
+        it('should match case-SENSITIVELY when explicit flags omit i (e.g. /Foo/m)', () => {
+            const mask = new CustomMask(['/Codename/m']);
+
+            const hit = Array.from(mask.find('Project Codename launched')).map(m => m[0]);
+            expect(hit).toContain('Codename');
+
+            const miss = Array.from(mask.find('project codename launched'));
+            expect(miss.length).toBe(0);
+        });
+
+        it('should mix flag groups: sensitive and insensitive patterns side by side', () => {
+            const mask = new CustomMask(['/Strict/s', '/loose/i', 'PlainWord']);
+
+            const matches = Array.from(mask.find('Strict and LOOSE and plainword, but not strict.')).map(m => m[0]);
+            expect(matches).toContain('Strict');
+            expect(matches).toContain('LOOSE');
+            expect(matches).toContain('plainword');
+            expect(matches).not.toContain('strict');
+        });
+
+        it('should respect flags of native RegExp objects', () => {
+            const mask = new CustomMask([/CaseMatters/m]);
+
+            expect(Array.from(mask.find('CaseMatters here')).length).toBe(1);
+            expect(Array.from(mask.find('casematters here')).length).toBe(0);
+        });
+
+        it('should strip unsupported flags like g instead of failing', () => {
+            const mask = new CustomMask(['/repeat/g']);
+            // g is engine-managed; without remaining flags the legacy
+            // case-insensitive default applies
+            const matches = Array.from(mask.find('REPEAT repeat')).map(m => m[0]);
+            expect(matches.length).toBe(2);
+        });
+
+    });
+
 });

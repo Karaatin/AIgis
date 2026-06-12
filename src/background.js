@@ -5,6 +5,7 @@
 import { StorageManager } from './utils/storage.js';
 import { Logger } from './utils/logger.js';
 import { ToonConverter } from './modules/toonConverter.js';
+import { SubscriptionSync } from './modules/subscriptions/subscriptionSync.js';
 
 const initLogger = async () => {
     try {
@@ -94,6 +95,9 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     // cleanup expired vault entries
     await StorageManager.pruneVault();
 
+    await SubscriptionSync.ensureAlarm();
+    SubscriptionSync.syncAll();
+
     chrome.contextMenus.create({
         id: "decode-toon",
         title: "Decode TOON to Clipboard",
@@ -130,9 +134,22 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 chrome.runtime.onStartup.addListener(async () => {
     await initLogger();
     Logger.info("AIgis Service Worker started.");
+
+    await SubscriptionSync.ensureAlarm();
+    SubscriptionSync.syncAll();
+});
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === SubscriptionSync.ALARM_NAME) {
+        SubscriptionSync.syncAll();
+    }
 });
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
+
+    if (namespace === 'sync' && changes.subscriptions) {
+        SubscriptionSync.syncMissing();
+    }
 
     if (namespace === 'sync' && changes.settings) {
 
@@ -140,7 +157,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
         if (newSettingsObj) {
             Logger.init({ settings: newSettingsObj });
-            Logger.info("🛡️ [AIgis Background] Debug Mode updated via Settings.");
+            Logger.info("Background: Debug Mode updated via Settings.");
 
             if (newSettingsObj.enabled !== undefined) {
                 chrome.tabs.query({ active: true, currentWindow: true }).then(async (tabs) => {
