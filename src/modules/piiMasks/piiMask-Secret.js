@@ -10,12 +10,16 @@ export default class SecretMask extends piiBaseMask {
             // AWS
             /\bAKIA[0-9A-Z]{16}\b/gi,
             /\bASIA[0-9A-Z]{16}\b/gi,
+            /(?:aws[_\s-]?secret[_\s-]?access[_\s-]?key)\s*[=:]\s*['"]?([A-Za-z0-9\/+=]{40})['"]?/gi,
+            /(?:aws[_\s-]?session[_\s-]?token)\s*[=:]\s*['"]?([A-Za-z0-9\/+=]{100,})['"]?/gi,
 
             // Azure (contextual - only near azure-specific keywords)
             /(?:azure|tenant[_\s-]?id|AZURE_[A-Z_]+)\s*[=:]\s*['"]?([a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12})['"]?/gi,
 
             // Google
             /\bAIza[0-9A-Za-z\-_]{35,}\b/gi,
+            /\bGOCSPX-[A-Za-z0-9_-]{20,}\b/g,
+            /\bya29\.[A-Za-z0-9_-]{30,}\b/g,
 
             // --- VCS & CI/CD TOKENS ---
             /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}\b/gi,
@@ -35,6 +39,7 @@ export default class SecretMask extends piiBaseMask {
             /\bsk_test_[A-Za-z0-9]{24,}\b/gi,
             /\bpk_live_[A-Za-z0-9]{24,}\b/gi,
             /\bpk_test_[A-Za-z0-9]{24,}\b/gi,
+            /\bwhsec_[A-Za-z0-9]{24,}\b/gi,
 
             // Square
             /\bsq0atp-[A-Za-z0-9\-_]{22,}\b/gi,
@@ -58,6 +63,9 @@ export default class SecretMask extends piiBaseMask {
 
             // Discord webhook
             /\bhttps:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/[A-Za-z0-9_\-]+\b/gi,
+
+            // Slack incoming webhook
+            /\bhttps:\/\/hooks\.slack\.com\/services\/T[A-Za-z0-9]+\/B[A-Za-z0-9]+\/[A-Za-z0-9]+\b/gi,
 
             // Telegram bot
             /\b\d{8,10}:[A-Za-z0-9_-]{35}\b/gi,
@@ -94,6 +102,10 @@ export default class SecretMask extends piiBaseMask {
             // Cloudflare (contextual)
             /(?:cloudflare|CF_API_TOKEN|CF_API_KEY)\s*[=:]\s*['"]?([A-Za-z0-9\-_]{37,})['"]?/gi,
 
+            // Azure storage account keys & SAS signatures
+            /AccountKey=([A-Za-z0-9+\/=]{60,})/gi,
+            /[?&]sig=([A-Za-z0-9%]{40,})/gi,
+
             // Datadog (contextual)
             /(?:datadog|dd)[_\s-]?(?:api[_\s-]?key|app[_\s-]?key|DD_API_KEY|DD_APP_KEY)\s*[=:]\s*['"]?([a-f0-9]{32,})['"]?/gi,
 
@@ -101,9 +113,11 @@ export default class SecretMask extends piiBaseMask {
             // Shopify
             /\bshp(?:at|ca|pa|ss|ua)_[A-Za-z0-9]{32,}\b/gi,
 
-            // --- PACKAGE REGISTRIES ---
+            // --- PACKAGE REGISTRIES & DEV TOOLING ---
             /\bnpm_[A-Za-z0-9]{36,}\b/gi,
             /\bpypi-[A-Za-z0-9\-_]{50,}\b/gi,
+            /\bdckr_pat_[A-Za-z0-9_-]{20,}\b/gi,
+            /\b[A-Za-z0-9]{14}\.atlasv1\.[A-Za-z0-9_=-]{40,}\b/g,
 
             // --- SENSITIVE CONTEXT PATTERNS ---
             /(?:otp|pin|code|verification)[\s:=]+['"]?(\d{4,8})['"]?/gi,
@@ -120,10 +134,16 @@ export default class SecretMask extends piiBaseMask {
             /(?:access[_-]?key|accesskey|access_key|access[_-]?token|accesstoken|access_token)\s*[=:]\s*['"]?([A-Za-z0-9\-_]{20,})['"]?/gi,
             /(?:auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[=:]\s*['"]?([A-Za-z0-9\-_]{20,})['"]?/gi,
 
+            // bare hex secrets: 32-64 hex chars evade the entropy net (hex
+            // maxes out at ~4 bits) and the 40+ generic rule - catch them
+            // when assigned to a credential-ish keyword
+            /\b(?:key|token|secret|pass|pwd)\s*[=:]\s*['"]?([a-f0-9]{32,64})['"]?\b/gi,
+
             // --- PRIVATE KEYS ---
             /-----BEGIN\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----[\s\S]*?-----END\s+(?:RSA\s+)?(?:PRIVATE|EC\s+PRIVATE)\s+KEY-----/gi,
             /-----BEGIN\s+OPENSSH\s+PRIVATE\s+KEY-----[\s\S]*?-----END\s+OPENSSH\s+PRIVATE\s+KEY-----/gi,
             /-----BEGIN\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----[\s\S]*?-----END\s+PGP\s+PRIVATE\s+KEY\s+BLOCK-----/gi,
+            /PuTTY-User-Key-File-\d[\s\S]+?Private-MAC:\s*[a-f0-9]+/gi,
 
             // --- GENERIC FALLBACKS ---
             /['"][A-Za-z0-9]{20,}['"]/g,
@@ -238,6 +258,17 @@ export default class SecretMask extends piiBaseMask {
     }
 
     validate(matchText, mode = 'strict') {
+        if (mode === 'developer') {
+            const t = matchText.trim();
+
+            // canonical documentation/example keys (AWS docs, Stripe docs)
+            if (/^(?:AKIA|ASIA)[0-9A-Z]{9}EXAMPLE$/.test(t)) return false;
+            if (t === 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY') return false;
+            if (t === 'sk_test_4eC39HqLyjWDarjtT1zdp7dc') return false;
+
+            // 40-char pure hex is almost certainly a git commit SHA, not a secret
+            if (/^[a-f0-9]{40}$/i.test(t)) return false;
+        }
         return true;
     }
 

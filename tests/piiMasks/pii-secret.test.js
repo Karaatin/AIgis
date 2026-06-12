@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import SecretMask from '../src/modules/piiMasks/piiMask-Secret.js';
+import SecretMask from '../../src/modules/piiMasks/piiMask-Secret.js';
 
 describe('PII Mask Logic: Secrets', () => {
 
@@ -205,6 +205,110 @@ lQOYBF2W...
         expect(matches).toContain('abcdefh1');
         expect(matches).not.toContain('PASSWORD: abcdefh1');
         expect(matches).not.toContain('POSTGRES_PASSWORD: abcdefh1');
+    });
+
+    describe('Gap closure: webhooks, cloud secrets, dev tooling', () => {
+
+        it('should find Slack incoming webhooks', () => {
+            const mask = new SecretMask();
+            const text = "Post to https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX please";
+            const matches = Array.from(mask.find(text)).map(m => m[0]);
+            expect(matches).toContain('https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX');
+        });
+
+        it('should find AWS secret access keys and session tokens (contextual)', () => {
+            const mask = new SecretMask();
+            const text = "aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
+            const matches = Array.from(mask.find(text)).map(m => m[0]);
+            expect(matches).toContain('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
+
+            const session = 'A'.repeat(120);
+            const matches2 = Array.from(mask.find(`AWS_SESSION_TOKEN=${session}`)).map(m => m[0]);
+            expect(matches2.some(m => m.includes(session.substring(0, 40)))).toBe(true);
+        });
+
+        it('should find Google OAuth client secrets and access tokens', () => {
+            const mask = new SecretMask();
+            const text = "secret GOCSPX-AbCdEf1234567890abcdef12 and token ya29.a0AfH6SMBx7-1234567890abcdefghijklmnop";
+            const matches = Array.from(mask.find(text)).map(m => m[0]);
+            expect(matches).toContain('GOCSPX-AbCdEf1234567890abcdef12');
+            expect(matches.some(m => m.startsWith('ya29.'))).toBe(true);
+        });
+
+        it('should find Stripe webhook signing secrets', () => {
+            const mask = new SecretMask();
+            const matches = Array.from(mask.find("whsec_AbCd1234EfGh5678IjKl9012MnOp")).map(m => m[0]);
+            expect(matches).toContain('whsec_AbCd1234EfGh5678IjKl9012MnOp');
+        });
+
+        it('should find Docker Hub and Terraform Cloud tokens', () => {
+            const mask = new SecretMask();
+            const text = "docker login -p dckr_pat_AbCdEf123456789012345 and TF: AbCdEfGh123456.atlasv1." + "x".repeat(50);
+            const matches = Array.from(mask.find(text)).map(m => m[0]);
+            expect(matches).toContain('dckr_pat_AbCdEf123456789012345');
+            expect(matches.some(m => m.includes('.atlasv1.'))).toBe(true);
+        });
+
+        it('should find Azure storage account keys and SAS signatures', () => {
+            const mask = new SecretMask();
+            const accountKey = 'a'.repeat(86) + '==';
+            const matches = Array.from(mask.find(`DefaultEndpointsProtocol=https;AccountKey=${accountKey};`)).map(m => m[0]);
+            expect(matches.some(m => m.includes(accountKey.substring(0, 40)))).toBe(true);
+
+            const sig = 'AbCdEf123456'.repeat(4);
+            const matches2 = Array.from(mask.find(`https://acc.blob.core.windows.net/c/b?sv=2024&sig=${sig}`)).map(m => m[0]);
+            expect(matches2.some(m => m.includes(sig))).toBe(true);
+        });
+
+        it('should catch bare hex secrets assigned to credential keywords', () => {
+            const mask = new SecretMask();
+            const hex32 = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6';
+            const matches = Array.from(mask.find(`token: ${hex32}`)).map(m => m[0]);
+            expect(matches).toContain(hex32);
+        });
+
+        it('should find PuTTY PPK private key files', () => {
+            const mask = new SecretMask();
+            const ppk = `PuTTY-User-Key-File-2: ssh-rsa
+Encryption: none
+Private-Lines: 2
+AAABAQCm5N7QmS5T1234567890
+AAABAQCm5N7QmS5T0987654321
+Private-MAC: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0`;
+            const matches = Array.from(mask.find(ppk)).map(m => m[0]);
+            expect(matches.some(m => m.startsWith('PuTTY-User-Key-File'))).toBe(true);
+        });
+
+    });
+
+    describe('Developer mode: documentation keys and git SHAs', () => {
+
+        const mask = new SecretMask();
+
+        it('should skip canonical documentation keys in developer mode but mask them in strict mode', () => {
+            expect(mask.validate('AKIAIOSFODNN7EXAMPLE', 'developer')).toBe(false);
+            expect(mask.validate('ASIAIOSFODNN7EXAMPLE', 'developer')).toBe(false);
+            expect(mask.validate('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY', 'developer')).toBe(false);
+            expect(mask.validate('sk_test_4eC39HqLyjWDarjtT1zdp7dc', 'developer')).toBe(false);
+
+            expect(mask.validate('AKIAIOSFODNN7EXAMPLE', 'strict')).toBe(true);
+            expect(mask.validate('sk_test_4eC39HqLyjWDarjtT1zdp7dc', 'strict')).toBe(true);
+        });
+
+        it('should NOT skip real-looking keys in developer mode', () => {
+            expect(mask.validate('AKIAIOSFODNN7RBXJQ2P', 'developer')).toBe(true);
+            expect(mask.validate('sk_test_AbCdEfGh1234567890IjKlMn', 'developer')).toBe(true);
+        });
+
+        it('should skip 40-char git commit SHAs in developer mode only', () => {
+            const sha = '356a192b7913b04c54574d18c28d46e6395428ab';
+            expect(mask.validate(sha, 'developer')).toBe(false);
+            expect(mask.validate(sha, 'strict')).toBe(true);
+
+            // not pure hex -> still a potential secret
+            expect(mask.validate('356a192b7913b04c54574d18c28d46e6395428az', 'developer')).toBe(true);
+        });
+
     });
 
 });
