@@ -512,6 +512,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     populateSubFilter();
 
     const refreshSubscriptionViews = async () => {
+        const fresh = await StorageManager.getSettings();
+        settingsData.settings = fresh.settings;
+        settingsData.modules = fresh.modules;
+        settingsData.customWords = fresh.customWords;
+
         effectiveData = await StorageManager.getEffectiveSettings();
         subscriptionEntries = await getSubscriptionWordEntries();
         populateSubFilter();

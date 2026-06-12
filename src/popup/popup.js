@@ -4,6 +4,7 @@
 import { StorageManager } from '../utils/storage.js';
 import { MODULES_UI } from '../utils/modules.js';
 import { Logger } from '../utils/logger.js';
+import { PatternValidator } from '../modules/patternValidator.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -29,11 +30,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let settingsData = null;
     let statsData = null;
+    let effectiveData = null;
+
+    const lockedSettings = () => (effectiveData && effectiveData.overrides && effectiveData.overrides.config.settings) || {};
+    const lockedModules = () => (effectiveData && effectiveData.overrides && effectiveData.overrides.config.modules) || {};
+    const managedTitle = () => effectiveData && effectiveData.overrides
+        ? `🔒 Managed by subscription '${effectiveData.overrides.providerName}' — manage it in the Dashboard`
+        : '';
+    const setLock = (inputEl, isLocked, withGlyph = true) => {
+        if (!inputEl) return;
+        inputEl.disabled = isLocked;
+
+        const wrap = inputEl.closest('label')
+            || (inputEl.type === 'radio' ? inputEl.nextElementSibling : inputEl.parentElement)
+            || inputEl;
+        wrap.style.opacity = isLocked ? '0.5' : '';
+        wrap.style.cursor = isLocked ? 'not-allowed' : '';
+        wrap.title = isLocked ? managedTitle() : '';
+
+        const row = inputEl.closest('.control-row');
+        const host = (row && row.querySelector('.label')) || wrap;
+        let glyph = host.querySelector('.lock-mini');
+        if (isLocked && withGlyph && !glyph) {
+            glyph = document.createElement('span');
+            glyph.className = 'lock-mini';
+            glyph.textContent = '🔒';
+            glyph.title = managedTitle();
+            glyph.style.cssText = 'font-size:0.7rem;margin-left:5px;opacity:0.85;';
+            host.appendChild(glyph);
+        } else if ((!isLocked || !withGlyph) && glyph) {
+            glyph.remove();
+        }
+    };
+
+    async function persistAndRender() {
+        await StorageManager.saveSettings(settingsData);
+        effectiveData = await StorageManager.getEffectiveSettings();
+        renderAll();
+    }
 
     try {
 
         settingsData = await StorageManager.getSettings();
         statsData = await StorageManager.getStats();
+        effectiveData = await StorageManager.getEffectiveSettings();
 
         Logger.init(settingsData);
 
@@ -66,8 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        await StorageManager.saveSettings(settingsData);
-        renderAll();
+        await persistAndRender();
 
     });
 
@@ -92,10 +131,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!settingsData) return;
 
-        const isGlobalOn = settingsData.settings.enabled;
+        const eff = effectiveData || settingsData;
+        const locks = lockedSettings();
+
+        const isGlobalOn = eff.settings.enabled;
 
         toggleEnabled.checked = isGlobalOn;
-        togglePeekMode.checked = settingsData.settings.peekMode || false;
+        togglePeekMode.checked = eff.settings.peekMode || false;
+        setLock(toggleEnabled, 'enabled' in locks);
+        setLock(togglePeekMode, 'peekMode' in locks);
 
         if (isGlobalOn) {
             statusBadge.innerText = "ACTIVE";
@@ -104,9 +148,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             statusBadge.innerText = "OFFLINE";
             statusBadge.className = "badge paused";
         }
+        statusBadge.title = effectiveData && effectiveData.overrides ? managedTitle() : '';
 
-        if (settingsData.settings.usageProfile === 'developer') modeDev.checked = true;
+        if (eff.settings.usageProfile === 'developer') modeDev.checked = true;
         else modeStrict.checked = true;
+
+        const profileLocked = 'usageProfile' in locks;
+        setLock(modeStrict, profileLocked);
+        setLock(modeDev, profileLocked, false);
 
         statPii.textContent = statsData.piiTotal || 0;
         let saved = statsData.toon ? Math.round(statsData.toon.estimatedTokensSaved) : 0;
@@ -121,8 +170,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!modulesGrid) return;
         modulesGrid.innerHTML = '';
 
+        const eff = effectiveData || settingsData;
+        const modLocks = lockedModules();
+
         MODULES_UI.forEach(mod => {
-            const isModOn = settingsData.modules[mod.id];
+            const isModOn = eff.modules[mod.id];
+            const isLocked = mod.id in modLocks;
 
             let stateClass = '';
             if (!isGlobalOn) {
@@ -139,7 +192,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <span class="module-label">${mod.label}</span>
             `;
 
+            if (isLocked) {
+                card.style.opacity = '0.5';
+                card.style.cursor = 'not-allowed';
+                card.title = managedTitle();
+                card.insertAdjacentHTML('beforeend',
+                    '<span class="lock-mini" style="font-size:0.6rem;margin-left:auto;opacity:0.85;">🔒</span>');
+            }
+
             card.addEventListener('click', async () => {
+
+                if (isLocked) return;
 
                 if (!isGlobalOn) {
                     settingsData.settings.enabled = true;
@@ -156,8 +219,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
 
-                await StorageManager.saveSettings(settingsData);
-                renderAll();
+                await persistAndRender();
 
             });
 
@@ -172,6 +234,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (word) {
             const isRegex = /^\/(.+)\/[a-z]*$/.test(word);
             const displayPattern = isRegex ? word.match(/^\/(.+)\/[a-z]*$/)[1] : word;
+
+            if (isRegex) {
+                const parts = word.match(/^\/(.+)\/([a-z]*)$/);
+                const verdict = PatternValidator.checkPattern(parts[1], parts[2]);
+                if (!verdict.ok) {
+                    showFeedback(`Rejected: ${verdict.reason}`);
+                    return;
+                }
+            }
 
             const exists = settingsData.customWords.some(w => w.toLowerCase() === word.toLowerCase());
             if (!exists) {

@@ -384,7 +384,7 @@ export const StorageManager = {
 
     async addMapping(placeholder, originalValue, type) {
         const vault = await this.getVault();
-        const settingsData = await this.getSettings();
+        const settingsData = await this.getEffectiveSettings();
         const pruneDays = settingsData.settings.vaultPruneDays || 30;
 
         vault.mappings[placeholder] = {
@@ -407,7 +407,7 @@ export const StorageManager = {
     async renewMapping(placeholder) {
         const vault = await this.getVault();
         if (vault.mappings[placeholder]) {
-            const settingsData = await this.getSettings();
+            const settingsData = await this.getEffectiveSettings();
             const pruneDays = settingsData.settings.vaultPruneDays || 30;
             vault.mappings[placeholder].expiresAt = Date.now() + (pruneDays * 24 * 60 * 60 * 1000);
             await this.saveVault(vault);

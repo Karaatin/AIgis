@@ -4,6 +4,7 @@
 */
 
 import { ToonConverter } from './toonConverter.js';
+import { StorageManager } from '../utils/storage.js';
 import { Logger } from '../utils/logger.js';
 
 export const ResponseHandler = {
@@ -37,20 +38,18 @@ export const ResponseHandler = {
         });
 
         if (typeof chrome !== 'undefined' && chrome.storage) {
-            chrome.storage.sync.get(['settings'], (res) => {
-                if (res && res.settings && res.settings.peekMode) {
-                    this.isSettingsPeek = true;
-                    this.applyGlobalPeek(true);
-                }
-            });
+            const applyPeekFromSettings = async () => {
+                const eff = await StorageManager.getEffectiveSettings();
+                this.isSettingsPeek = !!eff.settings.peekMode;
+                this.applyGlobalPeek(this.isSettingsPeek || this.isPeekKeyDown);
+            };
+
+            applyPeekFromSettings();
 
             chrome.storage.onChanged.addListener((changes, namespace) => {
-                if (namespace === 'sync' && changes.settings) {
-                    const newSettings = changes.settings.newValue;
-                    if (newSettings && newSettings.peekMode !== undefined) {
-                        this.isSettingsPeek = newSettings.peekMode;
-                        this.applyGlobalPeek(this.isSettingsPeek || this.isPeekKeyDown);
-                    }
+                if ((namespace === 'sync' && (changes.settings || changes.subscriptions)) ||
+                    (namespace === 'local' && changes.subscriptionData)) {
+                    applyPeekFromSettings();
                 }
             });
         }

@@ -9,7 +9,7 @@ import { SubscriptionSync } from './modules/subscriptions/subscriptionSync.js';
 
 const initLogger = async () => {
     try {
-        const data = await StorageManager.getSettings();
+        const data = await StorageManager.getEffectiveSettings();
         Logger.init(data);
 
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -59,7 +59,7 @@ function isSupportedUrl(url) {
 
 async function evaluateIconState(tabId, url) {
     try {
-        const data = await StorageManager.getSettings();
+        const data = await StorageManager.getEffectiveSettings();
         const isGlobalEnabled = data?.settings?.enabled ?? true;
 
         if (!isGlobalEnabled) {
@@ -156,7 +156,7 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
         const newSettingsObj = changes.settings.newValue;
 
         if (newSettingsObj) {
-            Logger.init({ settings: newSettingsObj });
+            StorageManager.getEffectiveSettings().then(eff => Logger.init(eff));
             Logger.info("Background: Debug Mode updated via Settings.");
 
             if (newSettingsObj.enabled !== undefined) {
