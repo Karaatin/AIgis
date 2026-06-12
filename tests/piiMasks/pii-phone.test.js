@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import PhoneMask from '../src/modules/piiMasks/piiMask-Phone.js';
+import PhoneMask from '../../src/modules/piiMasks/piiMask-Phone.js';
 
 describe('PII Mask Logic: Phone Numbers', () => {
 

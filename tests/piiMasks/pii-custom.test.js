@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import CustomMask from '../src/modules/piiMasks/piiMask-Custom.js';
+import CustomMask from '../../src/modules/piiMasks/piiMask-Custom.js';
 
 describe('PII Mask Logic: Custom Dictionary', () => {
 

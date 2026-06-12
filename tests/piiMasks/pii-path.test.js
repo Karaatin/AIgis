@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import PathMask from '../src/modules/piiMasks/piiMask-Path.js';
+import PathMask from '../../src/modules/piiMasks/piiMask-Path.js';
 
 describe('PII Mask Logic: File Paths', () => {
 

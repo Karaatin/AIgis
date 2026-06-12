@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ToonConverter } from '../src/modules/toonConverter.js';
+import { ToonConverter } from '../../src/modules/toonConverter.js';
 
 describe('ToonConverter (Official Repo)', () => {
 

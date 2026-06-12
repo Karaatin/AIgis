@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import URLMask from '../src/modules/piiMasks/piiMask-URL.js';
+import URLMask from '../../src/modules/piiMasks/piiMask-URL.js';
 
 describe('PII Mask Logic: URL', () => {
 

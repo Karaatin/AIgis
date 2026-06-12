@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import AddressMask from '../src/modules/piiMasks/piiMask-Address.js';
+import AddressMask from '../../src/modules/piiMasks/piiMask-Address.js';
 
 describe('PII Mask Logic: Addresses', () => {
 

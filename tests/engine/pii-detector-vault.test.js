@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { PiiDetector } from '../src/modules/piiDetector.js';
-import { StorageManager } from '../src/utils/storage.js';
+import { PiiDetector } from '../../src/modules/piiDetector.js';
+import { StorageManager } from '../../src/utils/storage.js';
 
 /**
  * Regression test: sanitize() must persist new vault mappings in the

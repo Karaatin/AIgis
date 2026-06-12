@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import IBANMask from '../src/modules/piiMasks/piiMask-IBAN.js';
+import IBANMask from '../../src/modules/piiMasks/piiMask-IBAN.js';
 
 describe('PII Mask Logic: IBAN', () => {
 

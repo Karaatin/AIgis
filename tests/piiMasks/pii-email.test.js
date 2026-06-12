@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import EmailMask from '../src/modules/piiMasks/piiMask-Email.js';
+import EmailMask from '../../src/modules/piiMasks/piiMask-Email.js';
 describe('PII Mask Logic: Email', () => {
     
     it('should find all valid emails in the sample text', () => {
