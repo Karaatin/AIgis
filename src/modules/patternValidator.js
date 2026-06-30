@@ -8,8 +8,8 @@
  *  1. compile check        - invalid regex is skipped, never thrown
  *  2. length cap           - patterns > 256 chars are rejected
  *  3. backtracking check   - nested quantifiers like (a+)+ are rejected (ReDoS heuristic)
- *  4. literal mode         - if allowRegex is false, regex-shaped entries are
- *                            escaped and matched as literal text (incl. delimiters)
+ *  4. opt-in regex         - if allowRegex is false, regex-shaped entries are
+ *                            dropped (inert): never executed, never matched
  *
  * Flags: i, m, s and u are respected per pattern ('g' is engine-managed).
  * Patterns without meaningful flags default to case-insensitive matching
@@ -50,14 +50,12 @@ export const PatternValidator = {
 
             const regexShape = trimmed.match(/^\/(.+)\/([a-z]*)$/);
 
-            // plain literal word: CustomMask handles escaping and boundaries
             if (!regexShape) {
                 accepted.push(trimmed);
                 continue;
             }
 
             if (!allowRegex) {
-                accepted.push(this.toLiteralRegex(trimmed));
                 continue;
             }
 
@@ -96,13 +94,6 @@ export const PatternValidator = {
         }
 
         return { ok: true, regex };
-    },
-
-    toLiteralRegex(raw) {
-        const escaped = raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const startBoundary = /^\w/.test(raw) ? '\\b' : '(?<!\\w)';
-        const endBoundary = /\w$/.test(raw) ? '\\b' : '(?!\\w)';
-        return new RegExp(`${startBoundary}${escaped}${endBoundary}`, 'i');
     },
 
     hasNestedQuantifiers(source) {

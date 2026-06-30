@@ -52,17 +52,17 @@ describe('PiiDetector: Subscription integration', () => {
         expect(res.sanitizedText).toContain('DisabledWord');
     });
 
-    it('should treat feed regex as literal text when allowRegex is off', async () => {
+    it('should leave feed regex entries inert when allowRegex is off', async () => {
         mockEnv({
             subscriptions: [{ id: 's1', name: 'Corp', url: 'https://a.com/f.json', enabled: true, allowRegex: false }],
             cache: { s1: { customWords: ['/CORP-\\d+/'], config: null, fetchedAt: 1 } }
         });
 
         const detector = new PiiDetector();
-        const res = await detector.sanitize('Pattern /CORP-\\d+/ shown, but CORP-1234 stays.');
+        const res = await detector.sanitize('Reference CORP-1234 stays in the text.');
 
-        expect(res.sanitizedText).toContain('CORP-1234');       // regex NOT executed
-        expect(res.sanitizedText).not.toContain('/CORP-\\d+/'); // literal text masked
+        expect(res.sanitizedText).toContain('CORP-1234');
+        expect(res.piiCounts.CUSTOM).toBeUndefined();
     });
 
     it('should load no feed words while subscriptions are globally paused (local words still work)', async () => {
@@ -76,8 +76,8 @@ describe('PiiDetector: Subscription integration', () => {
         const detector = new PiiDetector();
         const res = await detector.sanitize('LocalSecret and FeedWord here.');
 
-        expect(res.sanitizedText).not.toContain('LocalSecret'); // local still masks
-        expect(res.sanitizedText).toContain('FeedWord');        // feed paused
+        expect(res.sanitizedText).not.toContain('LocalSecret');
+        expect(res.sanitizedText).toContain('FeedWord');
     });
 
     it('should survive invalid LOCAL regex entries without losing other custom words', async () => {
@@ -90,7 +90,6 @@ describe('PiiDetector: Subscription integration', () => {
         const detector = new PiiDetector();
         const res = await detector.sanitize('StillWorks with EMP-1234 despite broken entries.');
 
-        // invalid + ReDoS entries are skipped, the rest keeps masking
         expect(res.sanitizedText).not.toContain('StillWorks');
         expect(res.sanitizedText).not.toContain('EMP-1234');
         expect(res.piiCounts.CUSTOM).toBe(2);
@@ -109,7 +108,7 @@ describe('PiiDetector: Subscription integration', () => {
     it('should respect a custom-module override from the effective settings', async () => {
         mockEnv({
             customWords: ['LocalSecret'],
-            modules: { custom: false }, // e.g. overlaid by a config provider
+            modules: { custom: false },
             subscriptions: [{ id: 's1', name: 'Corp', url: 'https://a.com/f.json', enabled: true }],
             cache: { s1: { customWords: ['FeedWord'], config: null, fetchedAt: 1 } }
         });

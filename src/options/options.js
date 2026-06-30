@@ -176,6 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (!Object.values(settingsData.modules).some(v => v)) settingsData.settings.enabled = false;
                 }
                 await save();
+                effectiveData = await StorageManager.getEffectiveSettings();
                 renderMainToggles();
             });
             modulesGrid.appendChild(card);
@@ -223,12 +224,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     renderMainToggles();
 
-    optEnabled.addEventListener('change', () => {
+    optEnabled.addEventListener('change', async () => {
         settingsData.settings.enabled = optEnabled.checked;
         if (settingsData.settings.enabled && !Object.values(settingsData.modules).some(v => v)) {
             for (let key in settingsData.modules) settingsData.modules[key] = true;
         }
-        save();
+        await save();
+        effectiveData = await StorageManager.getEffectiveSettings();
         renderMainToggles();
     });
     optDebug.addEventListener('change', () => { settingsData.settings.debugMode = optDebug.checked; save(); });
@@ -327,7 +329,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (dictSourceFilterValue === 'subscriptions' && dictSubFilterValue !== 'all') {
                 subEntries = subEntries.filter(e => e.subId === dictSubFilterValue);
             }
-            entries = entries.concat(subEntries.map(e => ({ word: e.word, source: 'sub', subId: e.subId, subName: e.subName })));
+            entries = entries.concat(subEntries.map(e => ({ word: e.word, source: 'sub', subId: e.subId, subName: e.subName, allowRegex: e.allowRegex, subEnabled: e.subEnabled })));
         }
 
         if (dictSearchQuery) {
@@ -364,9 +366,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         paginatedList.forEach(entry => {
             const word = entry.word;
             const row = document.createElement('div');
-            row.className = `list-item${entry.source === 'sub' ? ' sub-entry' : ''}`;
 
             const isRegex = /^\/(.+)\/[a-z]*$/.test(word);
+            const isSub = entry.source === 'sub';
+            const subsPaused = settingsData.settings.subscriptionsEnabled === false;
+            const subDisabled = isSub && entry.subEnabled === false;
+            const regexInactive = isRegex && isSub && !entry.allowRegex;
+            const isInactive = isSub && (subsPaused || subDisabled || regexInactive);
+
+            row.className = `list-item${isSub ? ' sub-entry' : ''}${isInactive ? ' entry-inactive' : ''}`;
+
             let displayHTML = escHtml(word);
 
             if (isRegex) {
@@ -374,6 +383,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const pattern = match ? match[1] : word;
                 const flags = match && match[2] ? ` <span class="regex-flags">/${escHtml(match[2])}</span>` : '';
                 displayHTML = `<code class="regex-code">${escHtml(pattern)}${flags}</code><span class="badge badge-regex">REGEX</span>`;
+            }
+
+            if (isInactive) {
+                let reason;
+                if (subsPaused) {
+                    reason = 'Inactive: Subscriptions are paused globally. Re-enable the subscriptions master switch on the Subscriptions tab to use this entry.';
+                } else if (subDisabled) {
+                    reason = `Inactive: The '${escHtml(entry.subName)}' subscription is turned off. Enable it on the Subscriptions tab to use this entry.`;
+                } else {
+                    reason = `Inactive: Enable 'Allow Regular Expressions' on the '${escHtml(entry.subName)}' subscription to run this as a regex.`;
+                }
+                displayHTML += `<span class="badge badge-inactive" title="${reason}">INACTIVE</span>`;
             }
 
             if (entry.source === 'sub') {

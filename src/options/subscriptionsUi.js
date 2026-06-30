@@ -202,7 +202,7 @@ export function initSubscriptionsUI({ settingsData, save, onDataChanged }) {
                             <input type="checkbox" class="t-config" ${sub.applyConfig ? 'checked' : ''} ${hasConfig || sub.applyConfig ? '' : 'disabled'}>
                             Apply Settings
                         </label>
-                        <label class="sub-toggle" title="Execute /regex/ patterns from this feed. Only for fully trusted sources - otherwise patterns are matched as literal text.">
+                        <label class="sub-toggle" title="Execute /regex/ patterns from this feed. Only for fully trusted sources.">
                             <input type="checkbox" class="t-regex" ${sub.allowRegex ? 'checked' : ''}>
                             Allow Regular Expressions
                         </label>
@@ -419,18 +419,22 @@ export function initSubscriptionsUI({ settingsData, save, onDataChanged }) {
 }
 
 /**
- * Word entries of all enabled subscriptions for the unified dictionary view.
- * @returns {Promise<Array<{word: string, subId: string, subName: string}>>}
+ * Word entries of ALL subscriptions for the unified dictionary view. Entries
+ * from disabled feeds are included too (flagged via `subEnabled`) so they stay
+ * visible-but-inactive instead of vanishing when a feed is toggled off, mirroring
+ * the global-pause behavior. `allowRegex` mirrors the feed's consent flag so the
+ * view can show /regex/ entries as inactive when regex execution is not enabled.
+ * @returns {Promise<Array<{word: string, subId: string, subName: string, allowRegex: boolean, subEnabled: boolean}>>}
  */
 export async function getSubscriptionWordEntries() {
     const subs = await StorageManager.getSubscriptions();
     const data = await StorageManager.getSubscriptionData();
     const entries = [];
-    for (const sub of subs.filter(s => s.enabled)) {
+    for (const sub of subs) {
         const cache = data[sub.id];
         if (!cache || !Array.isArray(cache.customWords)) continue;
         for (const word of cache.customWords) {
-            entries.push({ word, subId: sub.id, subName: sub.name });
+            entries.push({ word, subId: sub.id, subName: sub.name, allowRegex: !!sub.allowRegex, subEnabled: sub.enabled !== false });
         }
     }
     return entries;

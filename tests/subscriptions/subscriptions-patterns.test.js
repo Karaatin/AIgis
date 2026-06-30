@@ -61,28 +61,24 @@ describe('Subscription Pattern Validator', () => {
 
     });
 
-    describe('allowRegex: false (literal neutralization)', () => {
+    describe('allowRegex: false (regex entries are inert)', () => {
 
-        it('should match regex-shaped entries as literal text including delimiters', () => {
+        it('should drop regex-shaped entries entirely without rejecting them', () => {
             const { accepted, rejected } = PatternValidator.validateWords(
                 ['/\\b(?:CORP-\\d+)\\b/i'],
                 { allowRegex: false }
             );
+            expect(accepted.length).toBe(0);
             expect(rejected.length).toBe(0);
-            expect(accepted[0]).toBeInstanceOf(RegExp);
-
-            const re = new RegExp(accepted[0].source, 'gi');
-            expect('see /\\b(?:CORP-\\d+)\\b/i here'.match(re)).not.toBeNull();
-            // must NOT behave as the regex itself:
-            expect(re.test('CORP-1234')).toBe(false);
         });
 
-        it('should neutralize even ReDoS patterns to harmless literals', () => {
-            const { accepted, rejected } = PatternValidator.validateWords(['/(a+)+$/'], { allowRegex: false });
+        it('should keep plain literal words while dropping regex-shaped ones', () => {
+            const { accepted, rejected } = PatternValidator.validateWords(
+                ['PlainWord', '/(a+)+$/'],
+                { allowRegex: false }
+            );
+            expect(accepted).toEqual(['PlainWord']);
             expect(rejected.length).toBe(0);
-            const re = new RegExp(accepted[0].source, 'gi');
-            expect(re.test('xx /(a+)+$/ xx')).toBe(true);
-            expect(re.test('aaaaaaaaaaaaaaaaaaaaaaa!')).toBe(false);
         });
 
     });
@@ -104,12 +100,11 @@ describe('Subscription Pattern Validator', () => {
             expect(matches).toContain('LocalSecret');
         });
 
-        it('should never break the engine on a hostile feed (all entries rejected or neutralized)', () => {
+        it('should never break the engine on a hostile feed (all entries rejected or skipped)', () => {
             const hostile = ['/[broken/', '/(x+)+y/', ''];
             const { accepted, rejected } = PatternValidator.validateWords(hostile, { allowRegex: true });
             expect(rejected.length).toBe(2);
 
-            // building a mask from the surviving (possibly empty) set must not throw
             const mask = new CustomMask(accepted);
             expect(Array.from(mask.find('any text')).length).toBe(0);
         });

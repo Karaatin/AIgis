@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AIgis - Secure & Optimize AI Interactions",
   "short_name": "AIgis",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Secure & optimize your AI interactions. Locally mask secrets and optimize tokens in prompts before sending them to LLMs.",
   "author": "Keanu Caspers - github@Karaatin",
   "icons": {

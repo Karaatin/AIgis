@@ -193,11 +193,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
 
             if (isLocked) {
-                card.style.opacity = '0.5';
-                card.style.cursor = 'not-allowed';
+                card.classList.add('locked');
                 card.title = managedTitle();
-                card.insertAdjacentHTML('beforeend',
-                    '<span class="lock-mini" style="font-size:0.6rem;margin-left:auto;opacity:0.85;">🔒</span>');
+                card.insertAdjacentHTML('beforeend', '<span class="module-lock">🔒</span>');
             }
 
             card.addEventListener('click', async () => {

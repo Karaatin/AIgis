@@ -1,22 +1,17 @@
 {
   "_comment": "AIgis subscription feed template. Copy, modify and host this file (HTTPS only). Fields starting with underscore are documentation and ignored by the parser, as is any unknown field (forward compatibility).",
   "schemaVersion": 1,
-
   "_name": "Display name shown in the AIgis UI (max 64 chars). Always displayed together with your host name.",
   "name": "Corporate PII Masking Rules",
-
   "_description": "Optional description (max 256 chars).",
   "description": "Example feed: enforces masking of internal project codes and server names.",
-
-  "_customWords": "Optional. Plain strings are masked literally (case-insensitive, word boundaries). Entries wrapped in /.../ are treated as regex ONLY if the subscriber enables 'Allow Regular Expressions' for this feed; otherwise they are matched as literal text. Regex flags i, m, s and u are respected per pattern; without flags, matching is case-insensitive - write any flag set without i (e.g. /Foo/m) for case-sensitive matching. Max 5000 entries, 256 chars each. Patterns with nested quantifiers like (a+)+ are rejected for ReDoS safety.",
+  "_customWords": "Optional. Plain strings are masked literally (case-insensitive, word boundaries). Entries wrapped in /.../ are treated as regex ONLY if the subscriber enables 'Allow Regular Expressions' for this feed (otherwise such entries are ignored). Regex flags i, m, s and u are respected per pattern; without flags, matching is case-insensitive - write any flag set without i (e.g. /Foo/m) for case-sensitive matching. Max 5000 entries, 256 chars each. Patterns with nested quantifiers like (a+)+ are rejected for ReDoS safety.",
   "customWords": [
     "ProjectSecretName",
     "/\\b(?:CORP-SER-\\d+)\\b/i"
   ],
-
   "_config": "Optional. Applied only if the subscriber enables 'Apply Settings' for this feed AND confirms the shown changes. Every key is optional - omit what you don't want to manage. Unknown keys are dropped.",
   "config": {
-
     "_settings": "enabled: master protection switch (boolean). debugMode: verbose console logging (boolean). usageProfile: 'strict' masks everything, 'developer' skips safe dev values like localhost or example.com (string). peekMode: persistently reveal original values behind badges (boolean). vaultPruneDays: days until unused vault mappings expire, 1-365 (integer).",
     "settings": {
       "enabled": true,
@@ -25,7 +20,6 @@
       "peekMode": false,
       "vaultPruneDays": 30
     },
-
     "_modules": "Toggle individual detection modules (all boolean). email, iban, phone, address, url, ip, path (file paths), secret (API keys, tokens, credentials), custom (custom dictionary incl. this feed's words), toon (JSON-to-TOON token optimization).",
     "modules": {
       "email": true,

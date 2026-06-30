@@ -14,7 +14,7 @@
     <a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
     <img src="https://img.shields.io/badge/Status-Active_Development-orange.svg" alt="Status">
     <img src="https://img.shields.io/badge/Platform-Chromium-lightgrey.svg" alt="Platform">
-    <img src="https://img.shields.io/badge/Version-v1.5.0-brightgreen.svg" alt="Version">
+    <img src="https://img.shields.io/badge/Version-v1.5.1-brightgreen.svg" alt="Version">
   </p>
 </div>
 
@@ -56,7 +56,7 @@ Many companies and individuals hesitate to use tools like ChatGPT, Claude, Gemin
 * **Remote Rulesets:** Subscribe to HTTPS-hosted JSON feeds containing shared custom wordlists and configuration templates — ideal for teams enforcing common masking rules. See [`subscription-sample.json`](subscription-sample.json) for the fully documented feed format.
 * **Strictly One-Way:** AIgis only *pulls* feeds (plain GET, no credentials, no local data ever attached). Feeds are cached locally, refreshed daily (with ETag support and offline fallback), and can be updated manually anytime.
 * **Managed Settings with Consent:** A feed may provide settings overrides ("Apply Settings"). These are applied as a non-destructive overlay — your own settings stay saved and return when you unsubscribe. Every config (and every remote config *change*) must be explicitly confirmed before it takes effect, and managed settings are clearly badged with `🔒 Managed by [Feed]` in the dashboard.
-* **ReDoS-Hardened Regex:** Feed regex patterns are only executed if you mark the source as trusted — and even then each pattern passes a validation pipeline (compile check, length cap, catastrophic-backtracking heuristic). Untrusted feeds get their patterns neutralized to literal text. Rejected patterns are surfaced in the UI.
+* **ReDoS-Hardened Regex:** Feed regex patterns are only executed if you mark the source as trusted — and even then each pattern passes a validation pipeline (compile check, length cap, catastrophic-backtracking heuristic). Regex entries from untrusted feeds stay inert (never executed or matched) until you enable them. Rejected patterns are surfaced in the UI.
 * **Unified Dictionary View:** Subscription words appear alongside your local custom words (badged, read-only) with source filtering. Deleting a subscription optionally imports its words into your local list.
 
 ### 🛡️ 5. Secure Vault & Local Storage
