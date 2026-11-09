@@ -14,11 +14,13 @@ export default class URLMask extends piiBaseMask {
 
         const tldGroup = allTlds.join('|');
         const urlChars = `[-a-zA-Z0-9@:%._\\+~#=]{1,256}`;
-        const safeEndChar = `[-a-zA-Z0-9()@:%_\\+~#&/=]`;
-        const pathQueryChars = `(?:[-a-zA-Z0-9()@:%_\\+.~#?&//=]*${safeEndChar})?`;
+        const pathChar = `[-a-zA-Z0-9@:%_\\+.~#?&/=]`;
+        const parenGroup = `\\([-a-zA-Z0-9@:%_\\+.~#?&/=]*\\)`;
+        const safeEndChar = `[-a-zA-Z0-9@:%_\\+~#&/=]`;
+        const pathQueryChars = `(?:(?:${pathChar}|${parenGroup})*(?:${safeEndChar}|${parenGroup}))?`;
 
         const protocolRegex = `(?:\\b(?:https?:\\/\\/|www\\.)${urlChars}\\.[a-zA-Z0-9()]{1,6}\\b${pathQueryChars})`;
-        const localhostRegex = `(?:\\b(?:localhost|127\\.0\\.0\\.1)(?::\\d+)?(?:${pathQueryChars})?)`;
+        const localhostRegex = `(?:\\b(?:https?:\\/\\/)?(?:localhost|127\\.0\\.0\\.1)(?::\\d+)?(?:${pathQueryChars})?)`;
         const nakedRegex = `(?:\\b${urlChars}\\.(?:${tldGroup})\\b${pathQueryChars})`;
 
         const pattern = `(${localhostRegex}|${protocolRegex}|${nakedRegex})`;

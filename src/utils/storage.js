@@ -354,7 +354,14 @@ export const StorageManager = {
     async saveVault(vaultData) {
         return new Promise((resolve) => {
             if (typeof chrome === 'undefined' || !chrome.storage) return resolve();
-            chrome.storage.local.set({ vault: vaultData }, resolve);
+            chrome.storage.local.set({ vault: vaultData }, () => {
+                if (chrome.runtime && chrome.runtime.lastError) {
+                    // surface quota errors instead of failing silently
+                    Logger.error('Saving vault failed:', chrome.runtime.lastError.message);
+                    return resolve({ error: chrome.runtime.lastError.message });
+                }
+                resolve({});
+            });
         });
     },
 

@@ -128,4 +128,15 @@ describe('PII Mask Logic: File Paths', () => {
 
     });
 
+    it('should keep parentheses inside a Windows path but not a closing one after it', () => {
+
+        const text = "(backup: C:\\Users\\Anna\\Documents\\apollo-backup.zip) and C:\\Downloads\\invoice(2).pdf";
+        const matches = Array.from(mask.find(text));
+
+        expect(matches.length).toBe(2);
+        expect(matches[0][0]).toBe('C:\\Users\\Anna\\Documents\\apollo-backup.zip');
+        expect(matches[1][0]).toBe('C:\\Downloads\\invoice(2).pdf');
+
+    });
+
 });

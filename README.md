@@ -14,7 +14,7 @@
     <a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
     <img src="https://img.shields.io/badge/Status-Active_Development-orange.svg" alt="Status">
     <img src="https://img.shields.io/badge/Platform-Chromium-lightgrey.svg" alt="Platform">
-    <img src="https://img.shields.io/badge/Version-v1.5.1-brightgreen.svg" alt="Version">
+    <img src="https://img.shields.io/badge/Version-v1.6.0-brightgreen.svg" alt="Version">
   </p>
 </div>
 
@@ -75,12 +75,17 @@ AIgis intelligently observes and injects its UI specifically onto the following 
 * **ChatGPT** (`chatgpt.com`)
 * **Claude** (`claude.ai`)
 * **Gemini** (`gemini.google.com`)
-* **DeepSeek** (`deepseek.com`)
+* **DeepSeek** (`chat.deepseek.com`)
 * **Microsoft Copilot** (`copilot.microsoft.com`)
+* **Microsoft 365 Copilot** (`copilot.cloud.microsoft`, `m365.cloud.microsoft`)
 * **Perplexity** (`perplexity.ai`)
 * **Mistral** (`chat.mistral.ai`)
 * **Grok** (`grok.com`)
+* **Qwen** (`chat.qwen.ai`)
+* **Meta AI** (`meta.ai`)
 * **Kimi** (`kimi.com`)
+* **Duck.ai** (`duck.ai`)
+* **Poe** (`poe.com`)
 * **Xprivo** (`xprivo.com`)
 
 ---

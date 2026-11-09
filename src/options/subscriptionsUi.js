@@ -419,11 +419,8 @@ export function initSubscriptionsUI({ settingsData, save, onDataChanged }) {
 }
 
 /**
- * Word entries of ALL subscriptions for the unified dictionary view. Entries
- * from disabled feeds are included too (flagged via `subEnabled`) so they stay
- * visible-but-inactive instead of vanishing when a feed is toggled off, mirroring
- * the global-pause behavior. `allowRegex` mirrors the feed's consent flag so the
- * view can show /regex/ entries as inactive when regex execution is not enabled.
+ * Word entries of all subscriptions for the unified dictionary view
+ * (entries of disabled feeds included, shown as inactive).
  * @returns {Promise<Array<{word: string, subId: string, subName: string, allowRegex: boolean, subEnabled: boolean}>>}
  */
 export async function getSubscriptionWordEntries() {

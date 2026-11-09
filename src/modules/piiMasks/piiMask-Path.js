@@ -10,7 +10,7 @@ export default class PathMask extends piiBaseMask {
 
     find(text) {
 
-        const winAbs = /[a-zA-Z]:\\[\w\-\.\(\)\\]+/gi;
+        const winAbs = /[a-zA-Z]:\\(?:[\w\-.\\]|\([\w\-.\\]*\))+/gi; // parentheses only as closed pairs
 
         const winRel = /(?<=[\s"'=,(\[]|^)(?:\.{1,2}\\)?(?:[\w.-]+\\)+[\w.-]+/gi;
 

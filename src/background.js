@@ -135,6 +135,9 @@ chrome.runtime.onStartup.addListener(async () => {
     await initLogger();
     Logger.info("AIgis Service Worker started.");
 
+    // cleanup expired vault entries
+    await StorageManager.pruneVault();
+
     await SubscriptionSync.ensureAlarm();
     SubscriptionSync.syncAll();
 });

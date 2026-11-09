@@ -144,4 +144,51 @@ describe('PII Mask Logic: Custom Dictionary', () => {
 
     });
 
+    describe('Large dictionaries (chunked regex)', () => {
+
+        const signature = (mask, text) => Array.from(mask.find(text), m => `${m.index}:${m[0]}`).join('|');
+
+        it('should return exactly the single-regex result when the alternation is split into chunks', () => {
+            const dictionaries = [
+                ['Acme', 'Acme Corp', 'Corp', 'C++', '#internal', 'Node.js', 'node'],
+                ['ab', 'abc', 'b', 'bc', 'c d', 'd-e', 'e'],
+                ['/a+b/', '/[ab]{2}/i', '/x?/u', 'ab', 'A B', '/😀|é/u', 'é'],
+                ['/USR-\\d{3}/', 'USR', 'usr-1', '/API_[A-Z0-9]{5}/m', 'API']
+            ];
+            const text = 'Acme Corp uses C++ and Node.js; #internal ab abc b c d-e é 😀 xab A B USR-123 usr-1 API_X9A2B API acme corp';
+            const defaultSize = CustomMask.MAX_CHUNK_SOURCE;
+            try {
+                for (const words of dictionaries) {
+                    CustomMask.MAX_CHUNK_SOURCE = Infinity;
+                    const expected = signature(new CustomMask(words), text);
+                    for (const size of [1, 5, 12, 30]) {
+                        CustomMask.MAX_CHUNK_SOURCE = size;
+                        expect(signature(new CustomMask(words), text), `chunk size ${size}`).toBe(expected);
+                    }
+                }
+            } finally {
+                CustomMask.MAX_CHUNK_SOURCE = defaultSize;
+            }
+        });
+
+        it('should stay fast with thousands of entries', () => {
+            const words = [];
+            for (let i = 0; i < 4000; i++) {
+                words.push(['Project ', 'Codename', 'Client-', 'Acme '][i % 4] + ((i * 7919) % 100000).toString(36));
+            }
+            words.push('#internal', 'C++', '.NET'); // lookaround boundaries
+
+            let text = '';
+            for (let i = 0; i < 3000; i++) text += `Project status ${i}: ${words[(i * 31) % words.length]} is on track. `;
+
+            const started = performance.now();
+            const matches = Array.from(new CustomMask(words).find(text));
+            const elapsed = performance.now() - started;
+
+            expect(matches.length).toBe(3000);
+            expect(elapsed).toBeLessThan(600);
+        }, 20000);
+
+    });
+
 });

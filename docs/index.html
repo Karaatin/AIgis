@@ -386,11 +386,12 @@
                 }
 
                 const matches = manifest.content_scripts[0].matches;
-                const hosts = matches.map(url => {
-                    const displayUrl = url.replace('https://', '').replace('http://', '').replace('/*', '').replace('www.', '');
-                    const linkUrl = url.replace('/*', '');
-                    return { display: displayUrl, url: linkUrl };
-                });
+                const hosts = matches.map(pattern => {
+                    const m = pattern.match(/^(https?):\/\/(?:\*\.)?([^/]+)(\/.*)?$/);
+                    if (!m) return null;
+                    const path = (m[3] || '').replace(/\*$/, '').replace(/\/$/, '');
+                    return { display: m[2].replace(/^www\./, ''), url: `${m[1]}://${m[2]}${path}` };
+                }).filter(Boolean);
 
                 listDiv.innerHTML = hosts.map(h => `
                     <a href="${h.url}" target="_blank" class="platform-pill">

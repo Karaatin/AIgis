@@ -7,6 +7,24 @@ import { Logger } from '../utils/logger.js';
 
 const NOTE_PREFIX = "Note: Structured data below is optimized in TOON format (2-space indent, arrays show length and fields, tab-separated). If you generate structured tables or arrays in your response, use this same TOON format.";
 
+// brackets that can't start JSON are skipped without scanning
+const JSON_WHITESPACE = new Set([' ', '\t', '\n', '\r', ' ']);
+const ARRAY_VALUE_START = new Set([']', '{', '[', '"', '-', 't', 'f', 'n', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+
+function canStartJson(text, i) {
+    let k = i + 1;
+    while (k < text.length && JSON_WHITESPACE.has(text[k])) k++;
+    if (k >= text.length) return false;
+    return text[i] === '{' ? (text[k] === '"' || text[k] === '}') : ARRAY_VALUE_START.has(text[k]);
+}
+
+// only structured data (objects or arrays with at least one object) is converted to TOON; other JSON is left as-is
+function isStructuredData(value) {
+    return Array.isArray(value)
+        ? value.some(item => item !== null && typeof item === 'object')
+        : Object.keys(value).length > 0;
+}
+
 export const ToonConverter = {
 
     convert(text) {
@@ -16,7 +34,7 @@ export const ToonConverter = {
         let lastEndIndex = 0;
 
         for (let i = 0; i < text.length; i++) {
-            if (text[i] === '{' || text[i] === '[') {
+            if ((text[i] === '{' || text[i] === '[') && canStartJson(text, i)) {
                 let depth = 0;
                 let inString = false;
                 let escapeNext = false;
@@ -36,6 +54,11 @@ export const ToonConverter = {
                             try {
                                 const cleanBlock = block.replace(/\u00A0/g, ' '); // strip non-breaking spaces
                                 const jsonObj = JSON.parse(cleanBlock);
+                                if (!isStructuredData(jsonObj)) {
+                                    Logger.info(`TOON: kept non-structured JSON at index ${i} (${block.length} chars) as-is.`);
+                                    i = j;
+                                    break;
+                                }
                                 const toonOutput = encode(jsonObj, { delimiter: '\t' });
                                 const toReplace = `\n${NOTE_PREFIX}\n\n\`\`\`toon\nAIgis:TOON\n${toonOutput.trim()}\n\`\`\`\n`;
 

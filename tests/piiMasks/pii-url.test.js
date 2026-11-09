@@ -148,4 +148,24 @@ describe('PII Mask Logic: URL', () => {
 
     });
 
+    it('should not swallow a closing parenthesis but keep balanced ones', () => {
+
+        const text = "(details: https://intranet.acme-industries.io/incidents/4711) see https://en.wikipedia.org/wiki/Mercury_(planet)";
+        const matches = Array.from(mask.find(text));
+
+        expect(matches.length).toBe(2);
+        expect(matches[0][0]).toBe('https://intranet.acme-industries.io/incidents/4711');
+        expect(matches[1][0]).toBe('https://en.wikipedia.org/wiki/Mercury_(planet)');
+
+    });
+
+    it('should include the protocol in localhost URLs', () => {
+
+        const text = "Run http://localhost:3000/health or https://localhost/app";
+        const matches = Array.from(mask.find(text));
+
+        expect(matches.map(m => m[0])).toEqual(['http://localhost:3000/health', 'https://localhost/app']);
+
+    });
+
 });

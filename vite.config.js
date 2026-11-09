@@ -17,10 +17,10 @@ export default defineConfig({
     assetsInlineLimit: 0,
     rollupOptions: {
       input: {
-        popup: path.resolve(__dirname, 'src/popup/popup.html'),
-        options: path.resolve(__dirname, 'src/options/options.html'),
-        background: path.resolve(__dirname, 'src/background.js'),
-        content: path.resolve(__dirname, 'src/content.js'),
+        popup: path.resolve(import.meta.dirname, 'src/popup/popup.html'),
+        options: path.resolve(import.meta.dirname, 'src/options/options.html'),
+        background: path.resolve(import.meta.dirname, 'src/background.js'),
+        content: path.resolve(import.meta.dirname, 'src/content.js'),
       },
       output: {
         entryFileNames: 'src/[name].js',

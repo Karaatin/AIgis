@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AIgis - Secure & Optimize AI Interactions",
   "short_name": "AIgis",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Secure & optimize your AI interactions. Locally mask secrets and optimize tokens in prompts before sending them to LLMs.",
   "author": "Keanu Caspers - github@Karaatin",
   "icons": {
@@ -25,11 +25,17 @@
     "https://claude.ai/*",
     "https://gemini.google.com/*",
     "https://copilot.microsoft.com/*",
+    "https://copilot.cloud.microsoft/*",
+    "https://m365.cloud.microsoft/*",
     "https://www.perplexity.ai/*",
     "https://chat.mistral.ai/*",
     "https://grok.com/*",
-    "https://www.deepseek.com/*",
+    "https://chat.deepseek.com/*",
+    "https://chat.qwen.ai/*",
+    "https://*.meta.ai/*",
     "https://www.kimi.com/*",
+    "https://duck.ai/*",
+    "https://poe.com/*",
     "https://www.xprivo.com/*"
   ],
   "action": {
@@ -51,11 +57,17 @@
         "https://claude.ai/*",
         "https://gemini.google.com/*",
         "https://copilot.microsoft.com/*",
+        "https://copilot.cloud.microsoft/*",
+        "https://m365.cloud.microsoft/*",
         "https://www.perplexity.ai/*",
         "https://chat.mistral.ai/*",
         "https://grok.com/*",
-        "https://www.deepseek.com/*",
+        "https://chat.deepseek.com/*",
+        "https://chat.qwen.ai/*",
+        "https://*.meta.ai/*",
         "https://www.kimi.com/*",
+        "https://duck.ai/*",
+        "https://poe.com/*",
         "https://www.xprivo.com/*"
       ],
       "exclude_matches": [
@@ -66,7 +78,9 @@
         "https://v2.auth.mistral.ai/login*",
         "https://accounts.x.ai/sign-in*",
         "https://chat.deepseek.com/sign_in*",
-        "https://platform.deepseek.com/sign_in*"
+        "https://platform.deepseek.com/sign_in*",
+        "https://chat.qwen.ai/auth*",
+        "https://poe.com/login*"
       ],
       "js": [
         "content-loader.js"
@@ -86,11 +100,17 @@
         "https://claude.ai/*",
         "https://gemini.google.com/*",
         "https://copilot.microsoft.com/*",
+        "https://copilot.cloud.microsoft/*",
+        "https://m365.cloud.microsoft/*",
         "https://www.perplexity.ai/*",
         "https://chat.mistral.ai/*",
         "https://grok.com/*",
-        "https://www.deepseek.com/*",
+        "https://chat.deepseek.com/*",
+        "https://chat.qwen.ai/*",
+        "https://*.meta.ai/*",
         "https://www.kimi.com/*",
+        "https://duck.ai/*",
+        "https://poe.com/*",
         "https://www.xprivo.com/*"
       ],
       "resources": [

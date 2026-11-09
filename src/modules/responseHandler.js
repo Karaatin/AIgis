@@ -7,6 +7,9 @@ import { ToonConverter } from './toonConverter.js';
 import { StorageManager } from '../utils/storage.js';
 import { Logger } from '../utils/logger.js';
 
+// chat input is never scanned
+const EDITABLE_SELECTOR = '[contenteditable]:not([contenteditable="false"]), textarea, input';
+
 export const ResponseHandler = {
 
     vaultCache: {},
@@ -68,6 +71,11 @@ export const ResponseHandler = {
         return typeof entry === 'object' ? entry.val : entry;
     },
 
+    isInEditable(node) {
+        const el = node && (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
+        return !!(el && el.closest(EDITABLE_SELECTOR));
+    },
+
     startObserver() {
         if (this.observer) return;
 
@@ -75,6 +83,9 @@ export const ResponseHandler = {
             let shouldScan = false;
 
             mutations.forEach(m => {
+                // skip chat input
+                if (this.isInEditable(m.target)) return;
+
                 if (m.type === 'childList') {
                     m.addedNodes.forEach(node => {
                         this.pendingNodes.add(node);
@@ -122,6 +133,7 @@ export const ResponseHandler = {
         nodes.forEach(rootNode => {
             // check if detached
             if (!rootNode.isConnected) return;
+            if (this.isInEditable(rootNode)) return;
 
             if (rootNode.nodeType === Node.TEXT_NODE) {
                 if (rootNode.parentElement &&
@@ -139,7 +151,12 @@ export const ResponseHandler = {
 
             if (rootNode.nodeType === Node.ELEMENT_NODE) {
                 try {
-                    const walker = document.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT, null, false);
+                    // elements only to reject editable subtrees
+                    const walker = document.createTreeWalker(rootNode, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+                        acceptNode: (n) => n.nodeType === Node.TEXT_NODE
+                            ? NodeFilter.FILTER_ACCEPT
+                            : (n.matches(EDITABLE_SELECTOR) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP)
+                    });
                     let node;
                     while (node = walker.nextNode()) {
                         if (node.parentElement &&
@@ -189,6 +206,7 @@ export const ResponseHandler = {
         const codeBlocks = new Set();
 
         nodes.forEach(rootNode => {
+            if (this.isInEditable(rootNode)) return;
             if (rootNode.nodeType === Node.ELEMENT_NODE) {
                 if (rootNode.tagName === 'CODE' || rootNode.tagName === 'PRE') {
                     codeBlocks.add(rootNode);
@@ -199,7 +217,7 @@ export const ResponseHandler = {
         });
 
         codeBlocks.forEach(block => {
-            if (block.closest('.aigis-json-block')) return;
+            if (block.closest('.aigis-json-block') || block.closest(EDITABLE_SELECTOR)) return;
 
             const text = block.innerText || "";
 

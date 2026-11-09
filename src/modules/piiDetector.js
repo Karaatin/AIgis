@@ -6,6 +6,96 @@ import { StorageManager } from '../utils/storage.js';
 import { PatternValidator } from './patternValidator.js';
 import { Logger } from '../utils/logger.js';
 
+const LONG_MATCH_CHARS = 2000; // longer matches are replaced literally
+const MAX_ALTERNATION_CHARS = 100000;
+const DEBUG_DETAIL_LIMIT = 25;
+
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// temporary tokens use private use area chars, so no mask can match inside them
+const TOKEN_BLOCK = 0x20;
+const u4 = (n) => '\\u' + n.toString(16).padStart(4, '0');
+
+function createTokenCodec(text) {
+    // skip blocks that already occur in the text
+    let base = 0xE000;
+    while (base + TOKEN_BLOCK <= 0xF900 && new RegExp(`[${u4(base)}-${u4(base + TOKEN_BLOCK - 1)}]`).test(text)) {
+        base += TOKEN_BLOCK;
+    }
+    const open = String.fromCharCode(base);
+    const close = String.fromCharCode(base + 1);
+    const digit0 = base + 0x10;
+    const digits = Array.from({ length: 16 }, (_, k) => String.fromCharCode(digit0 + k));
+
+    return {
+        encode(index) {
+            let body = '';
+            for (const c of index.toString(16)) body += digits[parseInt(c, 16)];
+            return open + body + close;
+        },
+        decode(body) {
+            let index = 0;
+            for (let k = 0; k < body.length; k++) index = index * 16 + (body.charCodeAt(k) - digit0);
+            return index;
+        },
+        pattern: new RegExp(`${u4(base)}([${u4(digit0)}-${u4(digit0 + 15)}]+)${u4(base + 1)}`, 'g')
+    };
+}
+
+/**
+ * Replaces all candidates in one pass (longest first) and counts their occurrences.
+ * @returns {{ text: string, hits: number[] }}
+ */
+function replaceCandidates(text, candidates, tokenFor) {
+    const hits = new Array(candidates.length).fill(0);
+    const byLength = candidates.map((_, i) => i)
+        .sort((a, b) => candidates[b].length - candidates[a].length || a - b);
+
+    const replaceLiteral = (i) => {
+        const parts = text.split(candidates[i]);
+        hits[i] = parts.length - 1;
+        if (hits[i] > 0) text = parts.join(tokenFor(i));
+    };
+
+    let batch = [];
+    let batchChars = 0;
+    const flush = () => {
+        if (batch.length === 0) return;
+        let regex = null;
+        try {
+            regex = new RegExp(batch.map(i => escapeRegex(candidates[i])).join('|'), 'g');
+        } catch (e) {
+            Logger.warn(`Combined mask regex rejected (${e.message}), falling back to literal replacement.`);
+        }
+        if (regex) {
+            const indexOf = new Map(batch.map(i => [candidates[i], i]));
+            text = text.replace(regex, (m) => {
+                const i = indexOf.get(m);
+                hits[i]++;
+                return tokenFor(i);
+            });
+        } else {
+            batch.forEach(replaceLiteral);
+        }
+        batch = [];
+        batchChars = 0;
+    };
+
+    for (const i of byLength) {
+        const length = candidates[i].length;
+        if (length > LONG_MATCH_CHARS) {
+            replaceLiteral(i);
+            continue;
+        }
+        if (batchChars + length > MAX_ALTERNATION_CHARS) flush();
+        batch.push(i);
+        batchChars += length + 1;
+    }
+    flush();
+
+    return { text, hits };
+}
+
 export class PiiDetector {
 
     constructor() {
@@ -87,6 +177,18 @@ export class PiiDetector {
         }
     }
 
+    // debug output, capped per mask
+    _logMaskResult(mask, candidateCount, rejected, reused, created, pruneDays) {
+        Logger.info(`${mask.type}: ${candidateCount} unique candidate(s) found.`);
+        const list = (items, describe) => {
+            items.slice(0, DEBUG_DETAIL_LIMIT).forEach(item => Logger.info(describe(item)));
+            if (items.length > DEBUG_DETAIL_LIMIT) Logger.info(`${mask.type}: … and ${items.length - DEBUG_DETAIL_LIMIT} more.`);
+        };
+        list(rejected, (original) => `${mask.type}: candidate "${original}" rejected by '${this.mode}' mode filter.`);
+        list(reused, ([placeholder, count]) => `${mask.type}: vault hit, reusing ${placeholder} (${count}x).`);
+        list(created, ([placeholder, count]) => `${mask.type}: new mapping ${placeholder} created (${count}x, expires in ${pruneDays} days).`);
+    }
+
     /**
      * Main function: Scans text, checks vault, replaces PIIs.
      * @param {string} text - The original prompt
@@ -104,11 +206,12 @@ export class PiiDetector {
         let currentText = text;
         const sessionMap = {};
         const piiCounts = {};
-        const uuidMap = {};
-        const generateUUID = () => crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Math.random().toString(36).substring(2, 15);
+        const tokenPlaceholders = []; // token index -> placeholder
+        const tokens = createTokenCodec(text);
 
         const vault = await StorageManager.getVault();
         let vaultModified = false;
+        const pruneDays = this.settings.vaultPruneDays || 30;
 
         // pipe: text is sanitized by all active masks
         for (const mask of this.masks) {
@@ -118,68 +221,56 @@ export class PiiDetector {
 
             // unique Set for database operations
             const uniqueMatches = [...new Set(matches.map(m => m[0]))];
+            if (uniqueMatches.length === 0) continue;
 
-            if (uniqueMatches.length > 0) {
-                Logger.info(`${mask.type}: ${uniqueMatches.length} unique candidate(s) found.`);
+            const candidates = [];
+            const rejected = [];
+            for (const original of uniqueMatches) {
+                if (mask.validate && !mask.validate(original, this.mode)) rejected.push(original);
+                else candidates.push(original);
             }
 
-            for (const original of uniqueMatches) {
+            const base = tokenPlaceholders.length;
+            const replaced = replaceCandidates(currentText, candidates, i => tokens.encode(base + i));
+            currentText = replaced.text;
+            tokenPlaceholders.length = base + candidates.length;
 
-                if (mask.validate && !mask.validate(original, this.mode)) {
-                    Logger.info(`${mask.type}: candidate "${original}" rejected by '${this.mode}' mode filter.`);
-                    continue;
-                }
+            // placeholders in first-seen order
+            const reused = [];
+            const created = [];
+            for (let i = 0; i < candidates.length; i++) {
+                const occurrenceCount = replaced.hits[i];
+                if (occurrenceCount === 0) continue; // only inside longer candidates
 
-                const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const regex = new RegExp(escapedOriginal, 'g');
-
-                // count for statistics
-                const occurrenceCount = (currentText.match(regex) || []).length;
-
-                if (occurrenceCount === 0) continue;
-
+                const original = candidates[i];
                 let placeholder = vault.reverseIndex[original];
 
                 if (placeholder) {
-                    Logger.info(`${mask.type}: vault hit, reusing ${placeholder} (${occurrenceCount}x).`);
+                    reused.push([placeholder, occurrenceCount]);
                 } else {
-                    const currentMax = vault.counters[mask.prefix] || 0;
-                    const nextIndex = currentMax + 1;
+                    const nextIndex = (vault.counters[mask.prefix] || 0) + 1;
                     vault.counters[mask.prefix] = nextIndex;
 
                     placeholder = `[${mask.prefix}_${nextIndex}]`;
-
-                    const pruneDays = this.settings.vaultPruneDays || 30;
                     vault.mappings[placeholder] = {
                         val: original,
                         expiresAt: Date.now() + (pruneDays * 24 * 60 * 60 * 1000)
                     };
                     vault.reverseIndex[original] = placeholder;
                     vaultModified = true;
-
-                    Logger.info(`${mask.type}: new mapping ${placeholder} created (${occurrenceCount}x, expires in ${pruneDays} days).`);
+                    created.push([placeholder, occurrenceCount]);
                 }
 
-                // temporary UUID to prevent later regex passes from corrupting the placeholder
-                const tempUUID = `%%${generateUUID()}%%`;
-                uuidMap[tempUUID] = placeholder;
-
-                // update session map
+                tokenPlaceholders[base + i] = placeholder;
                 sessionMap[placeholder] = original;
-
-                // count up per category for statistics
-                if (!piiCounts[mask.type]) piiCounts[mask.type] = 0;
-                piiCounts[mask.type] += occurrenceCount;
-
-                // replace with UUID
-                currentText = currentText.replace(regex, tempUUID);
+                piiCounts[mask.type] = (piiCounts[mask.type] || 0) + occurrenceCount;
             }
+
+            if (Logger.isDebug) this._logMaskResult(mask, uniqueMatches.length, rejected, reused, created, pruneDays);
         }
 
-        // final pass: UUIDs -> real placeholders
-        for (const [uuid, placeholder] of Object.entries(uuidMap)) {
-            currentText = currentText.replace(new RegExp(uuid, 'g'), placeholder);
-        }
+        // tokens -> real placeholders
+        currentText = currentText.replace(tokens.pattern, (_, body) => tokenPlaceholders[tokens.decode(body)]);
 
         if (vaultModified) {
             await StorageManager.saveVault(vault);

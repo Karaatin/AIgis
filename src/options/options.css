@@ -1034,13 +1034,18 @@ input[type="checkbox"] {
   padding: 6px 8px;
   text-align: center;
   font-size: 0.9rem;
+  color-scheme: dark;
 }
 
 .dict-filter-row {
   display: flex;
   gap: 10px;
-  align-items: center;
+  align-items: stretch;
   margin-bottom: 15px;
+}
+
+.dict-filter-row .search-bar-sm {
+  margin-bottom: 0;
 }
 
 .filter-select {
