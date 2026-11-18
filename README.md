@@ -14,7 +14,7 @@
     <a href="https://github.com/Karaatin/AIgis/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
     <img src="https://img.shields.io/badge/Status-Active_Development-orange.svg" alt="Status">
     <img src="https://img.shields.io/badge/Platform-Chromium-lightgrey.svg" alt="Platform">
-    <img src="https://img.shields.io/badge/Version-v1.6.0-brightgreen.svg" alt="Version">
+    <img src="https://img.shields.io/badge/Version-v1.6.1-brightgreen.svg" alt="Version">
   </p>
 </div>
 
@@ -48,7 +48,7 @@ Many companies and individuals hesitate to use tools like ChatGPT, Claude, Gemin
 * **Context Restoration:** AIgis seamlessly re-injects your original string data directly into the LLM's response block in real-time, meaning you read the real data while the LLM only ever saw the generic placeholders.
 * **Interactive Badges:** AIgis renders intercepted targets as secure, clinical badges featuring the placeholder name (e.g., `EMAIL_1`). **Hovering** your mouse over the badge temporarily unmasks it to reveal your original, real data. A **native Single Click** immediately copies the raw, original data straight to your clipboard!
 * **Peek Mode:** Need to verify multiple unmasked values across the entire page simultaneously? You can suspend the privacy overlays to visually expose all underlying real data! For a fast, temporary glimpse, simply hold down the **`\` (Backquote/Tilde) key** (typically next to the `1`). Releasing it securely snaps the placeholders back into place. For persistent unmasking while reviewing long outputs, toggle the "Peek" switch inside the AIgis Dashboard!
-* **Smart Copy:** Don't worry about trying to extract information! Just highlight the LLM's text and copy it normally (`Ctrl+C` or `Cmd+C`). AIgis seamlessly intercepts the system's copy pipeline, unmasks the placeholders, natively decodes any TOON blocks to JSON, and injects the raw, safe data straight to your clipboard!
+* **Smart Copy:** Don't worry about trying to extract information! Just highlight the LLM's text and copy it normally (`Ctrl+C` or `Cmd+C`). AIgis seamlessly intercepts the system's copy pipeline, unmasks the placeholders, natively decodes any TOON blocks to JSON, and injects the raw, safe data straight to your clipboard! This also works with the sites' own copy buttons (e.g. *Copy code* or *Copy response*).
 * **Context Menus:** Features a built-in *Right-Click -> Decode TOON to Clipboard* tool! If the LLM generates raw TOON syntax and misses the auto-decoder, simply highlight the block and right-click to natively restore the JSON to your clipboard!
 
 ### 🔔 4. PII & Config Subscriptions (Teams & Enterprise)

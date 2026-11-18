@@ -10,6 +10,13 @@ import { Logger } from '../utils/logger.js';
 // chat input is never scanned
 const EDITABLE_SELECTOR = '[contenteditable]:not([contenteditable="false"]), textarea, input';
 
+// [EMAIL_1], or EMAIL_1 as shown by a badge
+const PLACEHOLDER_OR_LABEL = /\[([A-Z_]+_\d+)\]|\b([A-Z_]+_\d+)\b/g;
+
+// events shared with public/clipboard-bridge.js
+const CLIPBOARD_REQUEST = 'aigis:clipboard';
+const CLIPBOARD_DONE = 'aigis:clipboard-done';
+
 export const ResponseHandler = {
 
     vaultCache: {},
@@ -22,6 +29,9 @@ export const ResponseHandler = {
 
     init() {
         document.addEventListener('copy', (e) => this.handleSmartCopy(e), { capture: true });
+        // runs after copy handlers of the site
+        window.addEventListener('copy', (e) => this.unmaskCopyData(e));
+        document.addEventListener(CLIPBOARD_REQUEST, (e) => this.handleClipboardRelay(e));
 
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Backquote') {
@@ -271,8 +281,21 @@ export const ResponseHandler = {
             : originalNode;
 
         if (target && target.parentNode) {
+            container.style.margin = this.insetOf(target === originalNode ? [target] : [target, originalNode]);
             target.parentNode.replaceChild(container, target);
         }
+    },
+
+    insetOf(elements) {
+        return ['Top', 'Right', 'Bottom', 'Left'].map(side => {
+            let px = 0;
+            for (const el of elements) {
+                const cs = getComputedStyle(el);
+                if (cs.display === 'inline') continue;
+                px += (parseFloat(cs[`margin${side}`]) || 0) + (parseFloat(cs[`border${side}Width`]) || 0) + (parseFloat(cs[`padding${side}`]) || 0);
+            }
+            return `${Math.max(px, side === 'Top' || side === 'Bottom' ? 10 : 0)}px`;
+        }).join(' ');
     },
 
     createBadge(placeholder) {
@@ -298,24 +321,35 @@ export const ResponseHandler = {
             this.copySingle(placeholder);
         });
 
+        let hoverZone = null;
+
+        const hide = () => {
+            document.removeEventListener('mousemove', trackPointer, true);
+            hoverZone = null;
+            if (this.isPeekActive || !span.dataset.uiText) return;
+            span.innerText = span.dataset.uiText;
+            span.classList.remove('revealed');
+            delete span.dataset.uiText;
+        };
+
+        // stays revealed while the pointer is on the badge or its old place
+        const trackPointer = (e) => {
+            const z = hoverZone;
+            const inZone = e.clientX >= z.left && e.clientX <= z.right && e.clientY >= z.top && e.clientY <= z.bottom;
+            if (!inZone && !span.contains(e.target)) hide();
+        };
+
         span.addEventListener('mouseenter', () => {
-            if (this.isPeekActive) return;
-            if (original) {
-                if (!span.dataset.uiText) {
-                    span.dataset.uiText = span.innerText;
-                }
-                span.innerText = original;
-                span.classList.add('revealed');
-            }
+            if (this.isPeekActive || !original || span.classList.contains('revealed')) return;
+            hoverZone = span.getBoundingClientRect();
+            document.addEventListener('mousemove', trackPointer, true);
+            span.dataset.uiText = span.innerText;
+            span.innerText = original;
+            span.classList.add('revealed');
         });
 
-        span.addEventListener('mouseleave', () => {
-            if (this.isPeekActive) return;
-            if (original && span.dataset.uiText) {
-                span.innerText = span.dataset.uiText;
-                span.classList.remove('revealed');
-                delete span.dataset.uiText;
-            }
+        span.addEventListener('mouseleave', (e) => {
+            if (!hoverZone || !e.relatedTarget) hide();
         });
 
         if (this.isPeekActive && original) {
@@ -331,7 +365,7 @@ export const ResponseHandler = {
         const val = this.getOriginalValue(placeholder);
         if (val) {
             navigator.clipboard.writeText(val);
-            this.showToast("🔓 Original value copied!");
+            this.showToast("Original value copied!");
         }
     },
 
@@ -366,6 +400,13 @@ export const ResponseHandler = {
     },
 
     handleSmartCopy(e) {
+        // copy buttons using a hidden text field
+        const field = e.target;
+        if (field instanceof HTMLTextAreaElement || field instanceof HTMLInputElement) {
+            this.unmaskCopyEvent(e, field.value.substring(field.selectionStart ?? 0, field.selectionEnd ?? 0));
+            return;
+        }
+
         const selection = window.getSelection();
         if (!selection.rangeCount) return;
 
@@ -380,7 +421,15 @@ export const ResponseHandler = {
             container.appendChild(fragment);
         }
 
-        if (!hasCustomElements) return;
+        if (!hasCustomElements) {
+            // raw placeholders, e.g. temporary elements of copy buttons (editors and the JSON panel copy as usual)
+            const anchor = selection.anchorNode;
+            const el = anchor && (anchor.nodeType === Node.ELEMENT_NODE ? anchor : anchor.parentElement);
+            if (el && !el.closest(`${EDITABLE_SELECTOR}, .aigis-json-block`)) {
+                this.unmaskCopyEvent(e, selection.toString());
+            }
+            return;
+        }
 
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -412,6 +461,114 @@ export const ResponseHandler = {
             e.clipboardData.setData('text/plain', cleanText);
             this.showToast("Copied with unmasked/decoded values!");
         }
+    },
+
+    unmaskCopyEvent(e, text) {
+        const unmasked = this.unmaskPlain(text);
+        if (unmasked === text || !e.clipboardData) return;
+
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        e.clipboardData.setData('text/plain', unmasked);
+        Logger.info("ResponseHandler: copy with raw placeholders unmasked.");
+        this.showToast("Copied with unmasked values!");
+    },
+
+    unmaskCopyData(e) {
+        if (!e.defaultPrevented || !e.clipboardData || e.target?.isContentEditable) return;
+
+        const plain = e.clipboardData.getData('text/plain');
+        const html = e.clipboardData.getData('text/html');
+        const unmaskedPlain = plain && this.unmaskPlain(plain);
+        const unmaskedHtml = html && this.unmaskHtml(html);
+        if (unmaskedPlain === plain && unmaskedHtml === html) return;
+
+        if (unmaskedPlain !== plain) e.clipboardData.setData('text/plain', unmaskedPlain);
+        if (unmaskedHtml !== html) e.clipboardData.setData('text/html', unmaskedHtml);
+        Logger.info("ResponseHandler: clipboard data of the site unmasked.");
+        this.showToast("Copied with unmasked values!");
+    },
+
+    // copy buttons using the clipboard API
+    handleClipboardRelay(e) {
+        let request;
+        try {
+            request = JSON.parse(e.detail);
+        } catch {
+            return;
+        }
+        // user gestures only, so page scripts can't trigger it on their own
+        if (!request || !navigator.userActivation?.isActive) return;
+
+        const plain = typeof request.plain === 'string' ? this.unmaskPlain(request.plain) : undefined;
+        const html = typeof request.html === 'string' ? this.unmaskHtml(request.html) : undefined;
+        if (plain === request.plain && html === request.html) return;
+
+        e.preventDefault();
+        // only the result goes back to the page, never the text
+        this.writeClipboard(plain, html).then(ok => {
+            document.dispatchEvent(new CustomEvent(CLIPBOARD_DONE, { detail: JSON.stringify({ id: request.id, ok }) }));
+        });
+    },
+
+    async writeClipboard(plain, html) {
+        try {
+            if (html === undefined) {
+                await navigator.clipboard.writeText(plain);
+            } else {
+                const data = { 'text/html': new Blob([html], { type: 'text/html' }) };
+                if (plain !== undefined) data['text/plain'] = new Blob([plain], { type: 'text/plain' });
+                await navigator.clipboard.write([new ClipboardItem(data)]);
+            }
+            Logger.info("ResponseHandler: copy button intercepted (unmasking placeholders).");
+            this.showToast("Copied with unmasked values!");
+            return true;
+        } catch (err) {
+            Logger.warn("ResponseHandler: unmasked copy failed, the site copies as usual.", err);
+            return false;
+        }
+    },
+
+    unmaskText(text) {
+        return text.replace(PLACEHOLDER_OR_LABEL, (match, bracketed, label) => {
+            const placeholder = bracketed ? match : `[${label}]`;
+            const original = this.getOriginalValue(placeholder);
+            if (!original || (label && !this.hasBadge(placeholder))) return match;
+            return original;
+        });
+    },
+
+    unmaskPlain(text) {
+        const unmaskValue = (key, value) => typeof value === 'string' ? this.unmaskText(value) : value;
+        return this.unmaskText(text.includes('AIgis:TOON') ? ToonConverter.restore(text, unmaskValue) : text);
+    },
+
+    unmaskHtml(html) {
+        if (!/[A-Z]_\d/.test(html)) return html;
+
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        let changed = false;
+
+        doc.querySelectorAll('.aigis-badge').forEach(badge => {
+            const placeholder = badge.dataset.placeholder;
+            badge.replaceWith(this.getOriginalValue(placeholder) || placeholder || badge.textContent);
+            changed = true;
+        });
+
+        const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            const text = this.unmaskText(node.nodeValue);
+            if (text !== node.nodeValue) {
+                node.nodeValue = text;
+                changed = true;
+            }
+        }
+
+        return changed ? doc.documentElement.outerHTML : html;
+    },
+
+    hasBadge(placeholder) {
+        return !!document.querySelector(`.aigis-badge[data-placeholder="${placeholder}"]`);
     },
 
     showToast(msg) {

@@ -88,7 +88,7 @@ export const ToonConverter = {
         return result;
     },
 
-    decodeRaw(rawString) {
+    decodeRaw(rawString, replacer = null) {
         try {
             const clean = rawString.trim().replace(/```/g, '').trim();
             if (!clean) return null;
@@ -103,21 +103,21 @@ export const ToonConverter = {
                 return null;
             }
 
-            return JSON.stringify(jsonObj, null, 2);
+            return JSON.stringify(jsonObj, replacer, 2);
         } catch (e) {
             Logger.info(`TOON: decode failed (${e.message}). Block left untouched.`);
             return null;
         }
     },
 
-    restore(text) {
+    restore(text, replacer = null) {
         // escape special chars in NOTE_PREFIX for safe regex use
         const escapedPrefix = NOTE_PREFIX.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
         const regexStr = `(?:${escapedPrefix}\\s+)?\`\`\`(?:text|toon|yaml)\\s+AIgis:TOON\\s+([\\s\\S]*?)\\s+\`\`\``;
         const toonBlockRegex = new RegExp(regexStr, "gi");
 
         return text.replace(toonBlockRegex, (match, content) => {
-            const res = this.decodeRaw(content);
+            const res = this.decodeRaw(content, replacer);
             if (res) Logger.info("TOON: restored block to JSON.");
             return res || match;
         });
